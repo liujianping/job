@@ -38,6 +38,9 @@ Flags:
   -R, --report                     job generate report
   -r, --retry-times int            job command retry times when failed
 ````
+## TODO
+
+- [] pipe mode 
 
 ## Examples
 

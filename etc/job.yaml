@@ -1,0 +1,58 @@
+Job:
+  name: "demo"
+  command: 
+    name: "echo"
+    args: 
+      - "hello"
+      - "world"
+    envs:
+      - name: "key"
+        value: "val"
+    retry: 3
+    timeout: 3s
+  crontab: ""
+  concurrent: 0
+  repeat:
+    times: 10
+    interval: 100ms
+  timeout: 1h
+  guarantee: false
+  report: true
+  order:
+    precondition: [""]
+    weight: 4
+    wait: false
+---
+Job:
+  name: "work"
+  http:
+    retry: 3
+    timeout: 3s
+    request: 
+      url: "http://liujianping.github.io"
+      method: post
+      headers: 
+        Content-Type: application/json
+        Authorization: Bearer {{env "AUTH_TOKEN"}}
+      body:
+        json:
+          aa: "ddd"
+          bb: false
+    response:
+      status: 200
+      body:
+        json:
+          aa: "ddd"
+          bb: false
+  crontab: ""
+  concurrent: 0
+  repeat:
+    times: 0
+    interval: 100ms
+  timeout: 1h
+  guarantee: false
+  report: false
+  order:
+    weight: 3
+    precondition: [""]
+    wait: false

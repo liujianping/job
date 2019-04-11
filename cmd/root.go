@@ -15,12 +15,13 @@
 package cmd
 
 import (
-	"strings"
-	"context"
 	"fmt"
 	"os"
+	"sort"
 	"time"
-	homedir "github.com/mitchellh/go-homedir"
+	"context"
+
+	"github.com/liujianping/job/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/liujianping/job/exec"
@@ -34,43 +35,103 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "job",
 	Short: "Job, make your short-term command as a long-term job",
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		options := []exec.Option{}
-		options = append(options, exec.JobName(viper.GetString("name")))
-		options = append(options, exec.JobCommand(viper.GetString("cmd")))
-		for k, v := range viper.GetStringMapString("env") {
-			options = append(options, exec.JobEnv(k, v))
+		jds := []*config.JD{}
+		if len(viper.GetString("config")) > 0 {
+			cfs, err := config.ParseJDs(viper.GetString("config"))
+			if err != nil {
+				fmt.Println("job failed:", err)
+				os.Exit(1)
+			}
+			jds = cfs
 		}
-		arguments := []string{}
-		arguments = append(arguments, args...)	
-		arguments = append(arguments, strings.Split(strings.TrimRight(strings.TrimLeft(viper.GetString("arg"), "["), "]"), ",")...)	
-		options = append(options, exec.JobArgs(arguments...))
-		options = append(options, exec.JobPayload([]byte(viper.GetString("payload"))))
 
-		options = append(options, exec.JobCrontab(viper.GetString("crontab")))
-		options = append(options, exec.JobRetryTimes(viper.GetInt32("retry-times")))
-		options = append(options, exec.JobRepeatTimes(viper.GetInt32("repeat-times")))
-		options = append(options, exec.JobRepeatInterval(viper.GetDuration("repeat-interval")))
-		options = append(options, exec.CmdTimeout(viper.GetDuration("cmd-timeout")))
-		options = append(options, exec.JobTimeout(viper.GetDuration("job-timeout")))
-		// options = append(options, exec.JobTimeout(viper.GetDuration("deadline")))
-		options = append(options, exec.PipeLineMode(viper.GetBool("pipeline-mode")))
-		options = append(options, exec.Guarantee(viper.GetBool("guarantee")))
-		options = append(options, exec.Concurrent(viper.GetInt("concurrent")))
+		options := []config.Option{}
+		options = append(options, config.Name(viper.GetString("name")))
+		options = append(options, config.CommandName(viper.GetString("cmd-name")))
+		for k, v := range viper.GetStringMapString("cmd-env") {
+			options = append(options, config.CommandEnv(k, v))
+		}
+		options = append(options, config.CommandTimeout(viper.GetDuration("cmd-timeout")))
+		options = append(options, config.CommandRetry(viper.GetInt("cmd-retry")))
+
+		options = append(options, config.CommandArgs(args...))
+		options = append(options, config.Crontab(viper.GetString("crontab")))
+		options = append(options, config.RepeatTimes(viper.GetInt("repeat-times")))
+		options = append(options, config.RepeatInterval(viper.GetDuration("repeat-interval")))
+		options = append(options, config.Timeout(viper.GetDuration("timeout")))
+		options = append(options, config.Concurrent(viper.GetInt("concurrent")))
+		options = append(options, config.Guarantee(viper.GetBool("guarantee")))
+		
+		if len(jds) == 0 {
+			jd := config.CommandJD()
+			if viper.GetBool("cmd-http") {
+				jd = config.HttpJD()
+			}
+			jds = append(jds, jd)
+		}
+		for _, jd := range jds {
+			for _, opt := range options {
+				opt(jd)
+			}
+		}
+		sort.Sort(config.JDs(jds))
+
+		var reporter *exec.Reporter
 		mainOptions := []routine.Opt{routine.Interrupts(routine.DefaultCancelInterruptors...)}
 		if viper.GetBool("report") {
-			results := make(chan *routine.Result, 10000)
-			options = append(options, exec.Report(results))
 			n := viper.GetInt("repeat-times") * viper.GetInt("concurrent")
-			mainOptions = append(mainOptions, routine.BeforeExit(exec.NewReporter(n, results)))
+			reporter =  exec.NewReporter(n)
+			beforeExit := routine.ExecutorFunc(func(ctx context.Context) error {
+				reporter.Finalize()
+				return nil
+			})
+			mainOptions = append(mainOptions, routine.BeforeExit(beforeExit))
 		}
-					
+
 		err := routine.Main(
-			context.TODO(), 
-			exec.NewJob(options...),
+			context.TODO(),
+			routine.ExecutorFunc(func(ctx context.Context) error {
+				if reporter != nil {
+					routine.Go(ctx, reporter)
+				}
+				jobs := make(map[string]chan error, len(jds))
+				var main chan error
+				for _, jd := range jds {
+					if len(jd.Order.Precondition) == 0 {
+						job := exec.NewJob(jd, reporter)
+						ch := routine.Go(ctx, job)
+						jobs[job.String()] = ch
+						if jd.Report {
+							main = ch
+						}
+						if jd.Order.Wait {
+							<-ch
+						}
+					}					
+				}	
+				for _, jd := range jds {
+					for _, pre := range jd.Order.Precondition {
+						if ch, ok := jobs[pre]; ok {
+							<-ch
+						}
+						job := exec.NewJob(jd, reporter)
+						ch := routine.Go(ctx, job)
+						jobs[job.String()] = ch
+						if jd.Report {
+							main = ch
+						}
+						if jd.Order.Wait {
+							<-ch
+						}
+					}				
+				}			
+				return <- main
+			}),
 			mainOptions...)
+		if err != nil {
+			fmt.Println("job failed:", err)
+		}
 		os.Exit(errors.ValueFrom(err))
 	},
 }
@@ -84,57 +145,23 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	rootCmd.Flags().StringP("config", "f", "", "job config file path")
+	rootCmd.Flags().StringP("name", "N", "", "job name")
+	rootCmd.Flags().BoolP("cmd-http", "", false, "job command use http client")
+	rootCmd.Flags().BoolP("cmd-grpc", "", false, "job command use grpc client")
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.job.yaml)")
+	rootCmd.Flags().StringP("cmd-name", "C", "", "job command path name")
+	rootCmd.Flags().StringArrayP("cmd-arg", "a", []string{""}, "job command argments")
+	rootCmd.Flags().StringToStringP("cmd-env", "e", map[string]string{}, "job command enviromental variables")
+	rootCmd.Flags().IntP("cmd-retry", "r", 0, "job command retry times when failed")
+	rootCmd.Flags().DurationP("cmd-timeout", "t", 0, "job command timeout duration")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().StringP("name", "", "", "job name")
-	rootCmd.Flags().StringP("cmd", "C", "", "job command path")
-	rootCmd.Flags().StringArrayP("arg", "a", []string{""}, "job command argments")
-	rootCmd.Flags().StringToStringP("env", "e", map[string]string{}, "job command enviromental variables")
-	rootCmd.Flags().BytesBase64P("payload", "p", []byte{}, "job command custom payload")
-
-	rootCmd.Flags().IntP("concurrent", "c", 1, "job command concurrent numbers ")
-	rootCmd.Flags().IntP("retry-times", "r", 0, "job command retry times when failed")
-	rootCmd.Flags().IntP("repeat-times", "n", 1, "job command repeat times, 0 means forever")
-	rootCmd.Flags().DurationP("repeat-interval", "i", 0*time.Second, "job command repeat interval duration")
-	rootCmd.Flags().StringP("crontab", "", "", "job command schedule plan in crontab format")
-	rootCmd.Flags().DurationP("cmd-timeout", "t", 0, "timeout duration for command")
-	rootCmd.Flags().DurationP("job-timeout", "T", 0, "timeout duration for the job")
-
-	rootCmd.Flags().BoolP("pipline", "P", false, "job executing in pipeline mode")
-	rootCmd.Flags().BoolP("guarantee", "G", false, "job executing in guarantee mode")
-	rootCmd.Flags().BoolP("report", "R", false, "job generate report")
+	rootCmd.Flags().IntP("concurrent", "c", 1, "job concurrent numbers ")
+	rootCmd.Flags().IntP("repeat-times", "n", 1, "job repeat times, 0 means forever")
+	rootCmd.Flags().DurationP("repeat-interval", "i", 0*time.Second, "job repeat interval duration")
+	rootCmd.Flags().StringP("crontab", "", "", "job schedule plan in crontab format")
+	rootCmd.Flags().DurationP("timeout", "T", 0, "job timeout duration")
+	rootCmd.Flags().BoolP("guarantee", "G", false, "job guarantee mode enable ?")
+	rootCmd.Flags().BoolP("report", "R", false, "job reporter enable ?")
 	viper.BindPFlags(rootCmd.Flags())
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		// Search config in home directory with name ".job" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".job")
-	}
-
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }

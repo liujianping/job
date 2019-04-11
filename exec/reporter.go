@@ -79,19 +79,22 @@ type Reporter struct {
 	numRes    int64
 }
 
-func NewReporter(n int, res chan *routine.Result) routine.Executor {
+func NewReporter(n int) *Reporter {
 	cap := min(n, maxNum)
 	return &Reporter{
 		upTime:    time.Now(),
-		results:   res,
+		results:   make(chan *routine.Result, cap),
 		errorDist: make(map[string]int),
 		lats:      make([]float64, 0, cap),
 		codes:     make([]int, 0, cap),
 	}
 }
 
+func (r *Reporter) Report() chan *routine.Result {
+	return r.results
+}
+
 func (r *Reporter) Execute(ctx context.Context) error {
-	close(r.results)
 	// Loop will continue until channel is closed
 	for res := range r.results {
 		r.numRes++
@@ -109,7 +112,6 @@ func (r *Reporter) Execute(ctx context.Context) error {
 			}
 		}
 	}
-	r.Finalize()
 	return nil
 }
 
@@ -123,6 +125,7 @@ func min(a, b int) int {
 }
 
 func (r *Reporter) Finalize() {
+	close(r.results)
 	r.total = time.Since(r.upTime)
 	r.ops = float64(r.numRes) / r.total.Seconds()
 	r.average = r.avgTotal / float64(len(r.lats))

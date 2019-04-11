@@ -2,79 +2,89 @@ package exec
 
 import (
 	"context"
-	"strings"
+	"log"
 	"time"
 
-	"github.com/x-mod/errors"
-
-	"github.com/x-mod/routine"
-
-	"github.com/liujianping/job/pb"
+	"github.com/liujianping/job/config"
 	"github.com/satori/go.uuid"
+	"github.com/x-mod/errors"
+	"github.com/x-mod/routine"
 )
 
-//Job struct
+//Job struct instance of job
 type Job struct {
-	opts *options
-	cmd  string
+	id       string
+	jd       *config.JD
+	reporter *Reporter
 }
 
 //NewJob new job
-func NewJob(opts ...Option) *Job {
-	defaults := options{
-		job: &pb.Job{
-			Uuid: uuid.NewV4().String(),
-		},
+func NewJob(jd *config.JD, rpt *Reporter) *Job {
+	return &Job{
+		id:       uuid.NewV4().String(),
+		jd:       jd,
+		reporter: rpt,
 	}
-	for _, opt := range opts {
-		opt(&defaults)
-	}
-
-	return &Job{opts: &defaults}
 }
 
+//ID string
+func (j *Job) ID() string {
+	return j.id
+}
+
+//String
 func (j *Job) String() string {
-	return j.cmd
+	return j.jd.String()
 }
 
 //Execute implement executor
 func (j *Job) Execute(ctx context.Context) error {
-	jd := j.opts.job
-	if len(jd.Command) == 0 {
-		return errors.New("cmd required")
+	log.Println("Job Executing ... ", j.String())
+	var exec routine.Executor
+	if j.jd.Command != nil {
+		if len(j.jd.Command.Name) == 0 {
+			return errors.New("cmd name required")
+		}
+		exec = routine.ExecutorFunc(func(ctx context.Context) error {
+			cmd := routine.Command(j.jd.Command.Name, j.jd.Command.Args...)
+			if j.jd.Command.Retry > 0 {
+				cmd = routine.Retry(j.jd.Command.Retry, cmd)
+			}
+			if j.jd.Command.Timeout > 0 {
+				cmd = routine.Timeout(j.jd.Command.Timeout, cmd)
+			}
+			for _, kv := range j.jd.Command.Envs {
+				ctx = routine.WithEnviron(ctx, kv.Name, kv.Value)
+			}
+			return cmd.Execute(ctx)
+		})
 	}
-	cmds := []string{jd.Command}
-	cmds = append(cmds, jd.Argments...)
-	j.cmd = strings.Join(cmds, " ")
-	exec := routine.Command(jd.Command, jd.Argments...)
-	if j.opts.cmdTimeout > 0 {
-		exec = routine.Timeout(j.opts.cmdTimeout, exec)
+	if j.jd.HTTP != nil {
+		exec = routine.ExecutorFunc(func(ctx context.Context) error {
+			return nil
+		})
 	}
-	if jd.RetryTimes > 0 {
-		exec = routine.Retry(int(jd.RetryTimes), exec)
+
+	if j.reporter != nil {
+		if j.jd.Report {
+			exec = routine.Report(j.reporter.Report(), exec)
+		}
 	}
-	if j.opts.report != nil {
-		exec = routine.Report(j.opts.report, exec)
-	}
-	if j.opts.guarantee {
+	if j.jd.Guarantee {
 		exec = routine.Guarantee(exec)
 	}
-	if j.opts.concurrent > 0 {
-		exec = routine.Concurrent(j.opts.concurrent, exec)
+	if j.jd.Concurrent > 0 {
+		exec = routine.Concurrent(j.jd.Concurrent, exec)
 	}
-	if jd.RepeatTimes != 1 {
-		d, err := time.ParseDuration(jd.RepeatInterval)
-		if err != nil {
-			return err
-		}
-		exec = routine.Repeat(int(jd.RepeatTimes), d, exec)
+	if j.jd.Repeat.Times != 1 {
+		exec = routine.Repeat(j.jd.Repeat.Times, j.jd.Repeat.Interval, exec)
 	}
 	//* * * * *
-	if len(jd.Crontab) > 8 {
-		exec = routine.Crontab(jd.Crontab, exec)
+	if len(j.jd.Crontab) > 8 {
+		exec = routine.Crontab(j.jd.Crontab, exec)
 	}
-	if j.opts.jobTimeout > 0 {
-		exec = routine.Deadline(time.Now().Add(j.opts.jobTimeout), exec)
+	if j.jd.Timeout > 0 {
+		exec = routine.Deadline(time.Now().Add(j.jd.Timeout), exec)
 	}
 	return exec.Execute(ctx)
 }

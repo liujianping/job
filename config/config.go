@@ -163,7 +163,7 @@ func CommandName(cmd string) Option {
 func CommandArgs(args ...string) Option {
 	return func(jd *JD) {
 		if len(args) > 0 {
-			jd.Command.Args = args
+			jd.Command.Args = append(jd.Command.Args, args...)
 		}
 	}
 }

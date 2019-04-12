@@ -20,64 +20,145 @@ Usage:
   job [flags]
 
 Flags:
-  -a, --arg stringArray            job command argments
-  -C, --cmd string                 job command path
-  -t, --cmd-timeout duration       timeout duration for command
-  -c, --concurrent int             job command concurrent numbers  (default 1)
-      --config string              config file (default is $HOME/.job.yaml)
-      --crontab string             job command schedule plan in crontab format
-  -e, --env stringToString         job command enviromental variables (default [])
-  -G, --guarantee                  job executing in guarantee mode
+  -e, --cmd-env stringToString     job command enviromental variables (default [])
+  -r, --cmd-retry int              job command retry times when failed
+  -t, --cmd-timeout duration       job command timeout duration
+  -C, --command string             job command path name
+  -c, --concurrent int             job concurrent numbers  (default 1)
+  -f, --config string              job config file path
+  -s, --crontab string             job schedule plan in crontab format
+  -G, --guarantee                  job guarantee mode enable ?
   -h, --help                       help for job
-  -T, --job-timeout duration       timeout duration for the job
-      --name string                job name
-  -p, --payload bytesBase64        job command custom payload
-  -P, --pipline                    job executing in pipeline mode
-  -i, --repeat-interval duration   job command repeat interval duration
-  -n, --repeat-times int           job command repeat times, 0 means forever (default 1)
-  -R, --report                     job generate report
-  -r, --retry-times int            job command retry times when failed
+  -N, --name string                job name
+  -i, --repeat-interval duration   job repeat interval duration
+  -n, --repeat-times int           job repeat times, 0 means forever (default 1)
+  -R, --report                     job reporter enable ?
+  -T, --timeout duration           job timeout duration
 ````
-## TODO
-
-- [] pipe mode 
-
 ## Examples
 
-- Crontab
+- **Crontab**
 
 ````
-$: job -C echo hello --crontab "* * * * *"
-````
+$: job -C echo hello -s "* * * * *" 
 
-- Retry when command failed
+or
 
-````
-$: job -C echox hello -r 3 
-````
-
-- Repeat
+$: job -s "* * * * *" -- echo hello
 
 ````
-$: job -C echo hello -n 10 -i 500ms
-````
 
-- Concurrent
+- **Retry** when command failed
 
 ````
-$: job -C echo hello -n 10 -i 500ms -c 5
-````
 
-- Command Timeout
+$: job -r 3 -- echox hello
 
 ````
-$: job -C sleep -a 1 -t 500ms 
+
+- **Repeat** as you like 
+
+````
+$: job -n 10 -i 500ms -- echo hello
+
+````
+
+- **Concurrent**
+
+````
+$: job -n 10 -i 500ms -c 5 -- echo hello
+
+````
+
+- **Timeout** 
+
+  - command timeout
+
+````
+$: job -t 500ms -- sleep 1
+````
+
+  - job timeout
+  
+````
+$: job -n 0 -T 10s -- sleep 1
+````
+
+- **Yaml** config jobs in yaml format
+
+````yaml
+Job:
+  name: "demo"
+  command: 
+    name: "echo"
+    args: 
+      - "hello"
+      - "world"
+    envs:
+      - name: "key"
+        value: "val"
+    retry: 3
+    timeout: 3s
+  crontab: ""
+  concurrent: 0
+  repeat:
+    times: 10
+    interval: 100ms
+  timeout: 1h
+  guarantee: false
+  report: true
+  order:
+    precondition: [""]
+    weight: 4
+    wait: false
+---
+Job:
+  name: "work"
+  http:
+    retry: 3
+    timeout: 3s
+    request: 
+      url: "http://liujianping.github.io"
+      method: post
+      headers: 
+        Content-Type: application/json
+        Authorization: Bearer {{env "AUTH_TOKEN"}}
+      body:
+        json:
+          aa: "ddd"
+          bb: false
+    response:
+      status: 200
+      body:
+        json:
+          aa: "ddd"
+          bb: false
+  crontab: ""
+  concurrent: 0
+  repeat:
+    times: 0
+    interval: 100ms
+  timeout: 1h
+  guarantee: false
+  report: false
+  order:
+    weight: 3
+    precondition: [""]
+    wait: false
+````
+
+run jobs:
+
+````shell
+
+$: job -f jobs.yaml 
+
 ````
 
 - Report
 
 ````
-$: job -C echo hello -n 10 -i 500ms -c 5 -R 
+$: job -n 10 -i 500ms -c 5 -R -- echo hello
 
 Uptime:	5.1037 secs
 

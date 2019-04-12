@@ -23,16 +23,15 @@ Flags:
   -e, --cmd-env stringToString     job command enviromental variables (default [])
   -r, --cmd-retry int              job command retry times when failed
   -t, --cmd-timeout duration       job command timeout duration
-  -C, --command string             job command path name
   -c, --concurrent int             job concurrent numbers  (default 1)
   -f, --config string              job config file path
-  -s, --crontab string             job schedule plan in crontab format
   -G, --guarantee                  job guarantee mode enable ?
   -h, --help                       help for job
   -N, --name string                job name
   -i, --repeat-interval duration   job repeat interval duration
   -n, --repeat-times int           job repeat times, 0 means forever (default 1)
   -R, --report                     job reporter enable ?
+  -s, --schedule string            job schedule in crontab format
   -T, --timeout duration           job timeout duration
 ````
 ## Examples
@@ -40,10 +39,6 @@ Flags:
 - **Crontab**
 
 ````
-$: job -C echo hello -s "* * * * *" 
-
-or
-
 $: job -s "* * * * *" -- echo hello
 
 ````

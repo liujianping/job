@@ -12,11 +12,7 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.2
 	github.com/x-mod/errors v0.1.2
-	github.com/x-mod/httpclient v0.0.0
+	github.com/x-mod/httpclient v0.1.0
 	github.com/x-mod/routine v1.0.4
 	gopkg.in/yaml.v2 v2.2.2
 )
-
-replace github.com/x-mod/httpclient v0.0.0 => ../../x-mod/httpclient
-
-replace github.com/x-mod/routine v1.0.4 => ../../x-mod/routine

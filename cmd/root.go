@@ -23,11 +23,23 @@ import (
 )
 
 var envs *map[string]string
+var metadata *map[string]string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "job",
+	Use:   "job [flags] [command args ...]",
 	Short: "Job, make your short-term command as a long-term job",
+	Example: `
+(simple)      $: job echo hello	
+(schedule)    $: job -s "* * * * *" -- echo hello
+(retry)       $: job -r 3 -- echox hello
+(repeat)      $: job -n 10 -i 100ms -- echo hello
+(concurrent)  $: job -c 10 -n 10 -- echo hello
+(report)      $: job -R -- echo hello
+(timeout cmd) $: job -t 500ms -R -- sleep 1
+(timeout job) $: job -n 10 -i 500ms -T 3s -R -- echo hello
+(job output)  $: job -n 10 -i 500ms -T 3s -o -- echo hello
+(job config)  $: job -f /path/to/job.yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		Main(cmd, args)
 	},
@@ -43,21 +55,26 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().StringP("config", "f", "", "job config file path")
-	rootCmd.Flags().StringP("name", "N", "", "job name")
-	// rootCmd.Flags().BoolP("cmd-http", "", false, "job command use inner http client, unsupport yet!!!")
-	// rootCmd.Flags().BoolP("cmd-grpc", "", false, "job command use inner grpc client, unsupport yet!!!")
-	// rootCmd.Flags().StringP("command", "C", "", "job command path name")
-
+	rootCmd.Flags().StringP("name", "N", "", "job name definition")
+	metadata = rootCmd.Flags().StringToStringP("metadata", "M", map[string]string{}, "job metadata definition")
 	envs = rootCmd.Flags().StringToStringP("cmd-env", "e", map[string]string{}, "job command enviromental variables")
 	rootCmd.Flags().IntP("cmd-retry", "r", 0, "job command retry times when failed")
 	rootCmd.Flags().DurationP("cmd-timeout", "t", 0, "job command timeout duration")
+	rootCmd.Flags().BoolP("cmd-stdout-discard", "d", false, "job command stdout discard ?")
 
-	rootCmd.Flags().IntP("concurrent", "c", 1, "job concurrent numbers ")
+	rootCmd.Flags().IntP("concurrent", "c", 0, "job concurrent numbers ")
+	rootCmd.Flags().BoolP("repeat-interval-nowait", "w", false, "job repeat interval nowait for current command done ?")
 	rootCmd.Flags().IntP("repeat-times", "n", 1, "job repeat times, 0 means forever")
 	rootCmd.Flags().DurationP("repeat-interval", "i", 0*time.Second, "job repeat interval duration")
 	rootCmd.Flags().StringP("schedule", "s", "", "job schedule in crontab format")
 	rootCmd.Flags().DurationP("timeout", "T", 0, "job timeout duration")
 	rootCmd.Flags().BoolP("guarantee", "G", false, "job guarantee mode enable ?")
 	rootCmd.Flags().BoolP("report", "R", false, "job reporter enable ?")
+	rootCmd.Flags().BoolP("output", "o", false, "job yaml config output enable ?")
+	rootCmd.Flags().BoolP("verbose", "V", false, "job verbose log enable ?")
+
+	// TODO support Distributed-Job
+	// rootCmd.Flags().StringP("host", "H", "", "dispatch JOB to the Host")
 	viper.BindPFlags(rootCmd.Flags())
+	rootCmd.HelpFunc()
 }

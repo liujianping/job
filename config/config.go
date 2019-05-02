@@ -1,40 +1,23 @@
 package config
 
 import (
+	"net/url"
 	"strings"
 	"time"
 )
 
-// Job:
-//   name: "demo"
-//   command:
-//     name: "echo"
-//     args:
-//       - "hello"
-//     envs:
-//       - key: "key"
-//         val: "val"
-//   crontab: ""
-//   repeat:
-//     times: 0
-//     interval: 100ms
-//   retry: 3
-//   timeout:
-//     cmd: 3s
-//     job: 1h
-
 //JD struct config for job
 type JD struct {
-	Name       string        `yaml:"name"`
-	Command    *Command      `yaml:"command"`
-	HTTP       *HTTP         `yaml:"http"`
-	Crontab    string        `yaml:"crontab"`
-	Repeat     Repeat        `yaml:"repeat"`
-	Concurrent int           `yaml:"concurrent"`
-	Timeout    time.Duration `yaml:"timeout"`
-	Guarantee  bool          `yaml:"guarantee"`
-	Report     bool          `yaml:"report"`
-	Order      Order         `yaml:"order"`
+	Name       string                 `yaml:"name"`
+	Metadata   map[string]interface{} `yaml:"metadata,omitempty"`
+	Command    Command                `yaml:"command"`
+	Guarantee  bool                   `yaml:"guarantee"`
+	Crontab    string                 `yaml:"crontab"`
+	Repeat     Repeat                 `yaml:"repeat"`
+	Concurrent int                    `yaml:"concurrent"`
+	Timeout    time.Duration          `yaml:"timeout"`
+	Report     bool                   `yaml:"report"`
+	Order      Order                  `yaml:"order"`
 }
 
 //Order struct
@@ -46,19 +29,23 @@ type Order struct {
 
 //Command struct
 type Command struct {
-	Name    string        `yaml:"name"`
-	Args    []string      `yaml:"args"`
-	Envs    []KV          `yaml:"envs"`
+	Shell   *Shell        `yaml:"shell,omitempty"`
+	HTTP    *HTTP         `yaml:"http,omitempty"`
+	Stdout  bool          `yaml:"stdout"`
 	Retry   int           `yaml:"retry"`
 	Timeout time.Duration `yaml:"timeout"`
 }
 
+//Shell struct
+type Shell struct {
+	Name string   `yaml:"name"`
+	Args []string `yaml:"args"`
+	Envs []KV     `yaml:"envs"`
+}
+
 //HTTP struct
 type HTTP struct {
-	Request  Request       `yaml:"request"`
-	Response *Response     `yaml:"response"`
-	Retry    int           `yaml:"retry"`
-	Timeout  time.Duration `yaml:"timeout"`
+	Request Request `yaml:"request"`
 }
 
 //Request struct
@@ -66,14 +53,8 @@ type Request struct {
 	Method  string            `yaml:"method"`
 	URL     string            `yaml:"url"`
 	Headers map[string]string `yaml:"headers"`
-	Query   map[string]string `yaml:"query"`
+	Queries map[string]string `yaml:"queries"`
 	Body    *Body             `yaml:"body"`
-}
-
-//Response struct
-type Response struct {
-	Status int   `yaml:"status"`
-	Body   *Body `yaml:"body"`
 }
 
 //JSON struct
@@ -87,9 +68,10 @@ type Text string
 
 //Body struct
 type Body struct {
-	Text *Text `yaml:"text"`
-	JSON *JSON `yaml:"json"`
-	XML  *XML  `yaml:"xml"`
+	Text *Text       `yaml:"text"`
+	JSON *JSON       `yaml:"json"`
+	XML  *XML        `yaml:"xml"`
+	Form *url.Values `yaml:"form"`
 }
 
 //KV struct
@@ -104,18 +86,25 @@ type Repeat struct {
 	Interval time.Duration `yaml:"interval"`
 }
 
+//CommandJD default
 func CommandJD() *JD {
 	return &JD{
-		Command:    &Command{},
+		Metadata: map[string]interface{}{},
+		Command: Command{
+			Shell: &Shell{},
+		},
 		Repeat:     Repeat{Times: 1},
 		Concurrent: 1,
 		Report:     true,
 	}
 }
 
-func HttpJD() *JD {
+//HTTPCommandJD default
+func HTTPCommandJD() *JD {
 	return &JD{
-		HTTP:       &HTTP{},
+		Command: Command{
+			HTTP: &HTTP{},
+		},
 		Repeat:     Repeat{Times: 1},
 		Concurrent: 1,
 		Report:     true,
@@ -126,16 +115,16 @@ func (jd *JD) String() string {
 	if jd.Name != "" {
 		return jd.Name
 	}
-	if jd.Command != nil {
-		cmds := []string{jd.Command.Name}
-		cmds = append(cmds, jd.Command.Args...)
+	if jd.Command.Shell != nil {
+		cmds := []string{jd.Command.Shell.Name}
+		cmds = append(cmds, jd.Command.Shell.Args...)
 		return strings.Join(cmds, " ")
 	}
-	if jd.HTTP != nil {
-		if jd.HTTP.Request.URL == "" {
+	if jd.Command.HTTP != nil {
+		if jd.Command.HTTP.Request.URL == "" {
 			return "http"
 		}
-		return jd.HTTP.Request.URL
+		return jd.Command.HTTP.Request.URL
 	}
 	return ""
 }
@@ -152,30 +141,34 @@ func Name(n string) Option {
 	}
 }
 
+//CommandName opt
 func CommandName(cmd string) Option {
 	return func(jd *JD) {
 		if len(cmd) > 0 {
-			jd.Command.Name = cmd
+			jd.Command.Shell.Name = cmd
 		}
 	}
 }
 
+//CommandArgs opt
 func CommandArgs(args ...string) Option {
 	return func(jd *JD) {
 		if len(args) > 0 {
-			jd.Command.Args = append(jd.Command.Args, args...)
+			jd.Command.Shell.Args = append(jd.Command.Shell.Args, args...)
 		}
 	}
 }
 
+//CommandEnv opt
 func CommandEnv(key, val string) Option {
 	return func(jd *JD) {
 		if len(key) > 0 {
-			jd.Command.Envs = append(jd.Command.Envs, KV{Name: key, Value: val})
+			jd.Command.Shell.Envs = append(jd.Command.Shell.Envs, KV{Name: key, Value: val})
 		}
 	}
 }
 
+//CommandRetry opt
 func CommandRetry(n int) Option {
 	return func(jd *JD) {
 		if n > 0 {
@@ -184,6 +177,7 @@ func CommandRetry(n int) Option {
 	}
 }
 
+//CommandTimeout opt
 func CommandTimeout(d time.Duration) Option {
 	return func(jd *JD) {
 		if d > 0 {
@@ -192,6 +186,21 @@ func CommandTimeout(d time.Duration) Option {
 	}
 }
 
+//Guarantee opt
+func Guarantee(g bool) Option {
+	return func(jd *JD) {
+		jd.Guarantee = g
+	}
+}
+
+//CommandStdoutDiscard opt
+func CommandStdoutDiscard(m bool) Option {
+	return func(jd *JD) {
+		jd.Command.Stdout = !m
+	}
+}
+
+//Crontab opt
 func Crontab(plan string) Option {
 	return func(jd *JD) {
 		if len(plan) > 0 {
@@ -200,6 +209,7 @@ func Crontab(plan string) Option {
 	}
 }
 
+//RepeatTimes opt
 func RepeatTimes(n int) Option {
 	return func(jd *JD) {
 		if n != 1 {
@@ -208,6 +218,7 @@ func RepeatTimes(n int) Option {
 	}
 }
 
+//RepeatInterval opt
 func RepeatInterval(d time.Duration) Option {
 	return func(jd *JD) {
 		if d > 0 {
@@ -216,6 +227,7 @@ func RepeatInterval(d time.Duration) Option {
 	}
 }
 
+//Timeout opt
 func Timeout(d time.Duration) Option {
 	return func(jd *JD) {
 		if d > 0 {
@@ -224,17 +236,21 @@ func Timeout(d time.Duration) Option {
 	}
 }
 
+//Concurrent opt
 func Concurrent(c int) Option {
 	return func(jd *JD) {
-		if c > 0 {
+		if c != 0 {
 			jd.Concurrent = c
 		}
 	}
 }
 
-func Guarantee(g bool) Option {
+//Metadata opt
+func Metadata(key string, val interface{}) Option {
 	return func(jd *JD) {
-		jd.Guarantee = g
+		if len(key) > 0 {
+			jd.Metadata[key] = val
+		}
 	}
 }
 

@@ -123,9 +123,11 @@ func min(a, b int) int {
 	}
 	return b
 }
+func (r *Reporter) Stop() {
+	close(r.results)
+}
 
 func (r *Reporter) Finalize() {
-	close(r.results)
 	r.total = time.Since(r.upTime)
 	r.ops = float64(r.numRes) / r.total.Seconds()
 	r.average = r.avgTotal / float64(len(r.lats))

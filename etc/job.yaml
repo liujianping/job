@@ -1,22 +1,23 @@
 Job:
   name: "demo"
-  command: 
-    name: "echo"
-    args: 
-      - "hello"
-      - "world"
-    envs:
-      - name: "key"
-        value: "val"
+  command:
+    shell: 
+      name: "osascript"
+      args: 
+        - -e
+        - display notification "hello job" with title "notify"
+      envs:
+        - name: "key"
+          value: "val"
     retry: 3
     timeout: 3s
+    guarantee: false
   crontab: ""
   concurrent: 0
   repeat:
-    times: 10
+    times: 2
     interval: 100ms
   timeout: 1h
-  guarantee: false
   report: true
   order:
     precondition: [""]
@@ -25,34 +26,31 @@ Job:
 ---
 Job:
   name: "work"
-  http:
+  command:
     retry: 3
     timeout: 3s
-    request: 
-      url: "http://liujianping.github.io"
-      method: post
-      headers: 
-        Content-Type: application/json
-        Authorization: Bearer {{env "AUTH_TOKEN"}}
-      body:
-        json:
-          aa: "ddd"
-          bb: false
-    response:
-      status: 200
-      body:
-        json:
-          aa: "ddd"
-          bb: false
+    stdout: true
+    http:    
+      request: 
+        url: "http://localhost:8090/v1/demo.Demo/Hello"
+        method: POST
+        headers: 
+          Content-Type: application/json
+          X-CHIRPEUR-IGNORE: f9mBRGjhuZX9
+        body:
+          json:
+            hello: "demo"
+            person:
+              name: jay
+              age: 39
   crontab: ""
-  concurrent: 0
+  concurrent: 2
   repeat:
-    times: 0
-    interval: 100ms
+    times: 3
+    interval: "10ms"
   timeout: 1h
-  guarantee: false
-  report: false
+  report: true
   order:
     weight: 3
-    precondition: [""]
+    precondition:
     wait: false

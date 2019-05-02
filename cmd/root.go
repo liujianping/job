@@ -63,7 +63,6 @@ func init() {
 	rootCmd.Flags().BoolP("cmd-stdout-discard", "d", false, "job command stdout discard ?")
 
 	rootCmd.Flags().IntP("concurrent", "c", 0, "job concurrent numbers ")
-	rootCmd.Flags().BoolP("repeat-interval-nowait", "w", false, "job repeat interval nowait for current command done ?")
 	rootCmd.Flags().IntP("repeat-times", "n", 1, "job repeat times, 0 means forever")
 	rootCmd.Flags().DurationP("repeat-interval", "i", 0*time.Second, "job repeat interval duration")
 	rootCmd.Flags().StringP("schedule", "s", "", "job schedule in crontab format")

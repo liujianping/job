@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"sort"
 	"time"
 
@@ -137,11 +136,11 @@ func (r *Reporter) Finalize() {
 func (r *Reporter) print() {
 	buf := &bytes.Buffer{}
 	if err := newTemplate().Execute(buf, r.snapshot()); err != nil {
-		log.Println("error:", err.Error())
+		r.printf(err.Error())
+		r.printf("\n")
 		return
 	}
 	r.printf(buf.String())
-
 	r.printf("\n")
 }
 

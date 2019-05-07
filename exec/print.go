@@ -56,7 +56,8 @@ var (
 Uptime:	{{formatNumber .Uptime.Seconds }} secs
 
 Summary:
-  Total:	{{ formatNumber .Total.Seconds }} secs
+  Succeed:	{{ .SuccTotal }}
+  Total  :	{{ formatNumber .Total.Seconds }} secs
   Slowest:	{{ formatNumber .Slowest }} secs
   Fastest:	{{ formatNumber .Fastest }} secs
   Average:	{{ formatNumber .Average }} secs

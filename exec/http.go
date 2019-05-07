@@ -11,8 +11,6 @@ import (
 	"github.com/x-mod/routine"
 )
 
-const defaultMaxIdleConnections = 32
-
 //HTTPCommand struct
 type HTTPCommand struct {
 	cmd *config.Command
@@ -23,6 +21,27 @@ func NewHTTPCommand(cmd *config.Command) routine.Executor {
 	return &HTTPCommand{
 		cmd: cmd,
 	}
+}
+
+type _transport struct{}
+
+//WithTransport context
+func WithTransport(ctx context.Context, tr http.RoundTripper) context.Context {
+	if ctx != nil {
+		return context.WithValue(ctx, _transport{}, tr)
+	}
+	return context.WithValue(context.TODO(), _transport{}, tr)
+}
+
+//TransportFrom context
+func TransportFrom(ctx context.Context) (http.RoundTripper, bool) {
+	if ctx != nil {
+		tr := ctx.Value(_transport{})
+		if tr != nil {
+			return tr.(http.RoundTripper), true
+		}
+	}
+	return nil, false
 }
 
 //Execute of HTTPCommand
@@ -75,11 +94,12 @@ func (h *HTTPCommand) Execute(ctx context.Context) error {
 			httpclient.NewDumpResponse(),
 		))
 	}
-	clientOpts = append(clientOpts, httpclient.Transport(httpclient.NewHTTPTransport(
-		httpclient.Retry(h.cmd.Retry),
-		httpclient.Timeout(h.cmd.Timeout),
-		httpclient.MaxIdleConnections(defaultMaxIdleConnections),
-	)))
+	if tr, ok := TransportFrom(ctx); ok {
+		clientOpts = append(clientOpts, httpclient.Transport(tr))
+	}
+	if h.cmd.Timeout > 0 {
+		clientOpts = append(clientOpts, httpclient.Timeout(h.cmd.Timeout))
+	}
 	client := httpclient.New(clientOpts...)
 	return client.Execute(ctx)
 }

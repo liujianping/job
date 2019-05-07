@@ -33,6 +33,7 @@ type ReportData struct {
 	ErrorDist map[string]int
 	CodeDist  map[int]int
 	SizeTotal int64
+	SuccTotal int64
 	NumRes    int64
 
 	LatencyDistribution []LatencyDistribution
@@ -73,8 +74,7 @@ type Reporter struct {
 	errorDist map[string]int
 	lats      []float64
 	sizeTotal int64
-	reqTotal  int64
-	respTotal int64
+	succTotal int64
 	numRes    int64
 }
 
@@ -101,6 +101,7 @@ func (r *Reporter) Execute(ctx context.Context) error {
 			r.errorDist[res.Err.Error()]++
 			r.codes = append(r.codes, res.Code)
 		} else {
+			r.succTotal++
 			r.avgTotal += res.Duration.Seconds()
 			if len(r.lats) < maxNum {
 				r.lats = append(r.lats, res.Duration.Seconds())
@@ -157,6 +158,7 @@ func (r *Reporter) snapshot() ReportData {
 		Total:     r.total,
 		Uptime:    time.Since(r.upTime),
 		ErrorDist: r.errorDist,
+		SuccTotal: r.succTotal,
 		NumRes:    r.numRes,
 		Lats:      make([]float64, len(r.lats)),
 		Offsets:   make([]float64, len(r.lats)),

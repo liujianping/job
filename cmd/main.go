@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"sort"
+
+	"github.com/x-mod/httpclient"
 
 	"gopkg.in/yaml.v2"
 
@@ -65,11 +68,23 @@ func Main(cmd *cobra.Command, args []string) {
 	options = append(options, config.Timeout(viper.GetDuration("timeout")))
 	options = append(options, config.Concurrent(viper.GetInt("concurrent")))
 
+	needReport := false
+	httpShared := 0
 	for _, jd := range jds {
 		for _, opt := range options {
 			opt(jd)
+			if viper.GetBool("report") {
+				jd.Report = true
+			}
+			if jd.Report {
+				needReport = true
+			}
+			if jd.Command.HTTP != nil {
+				httpShared = httpShared + jd.Concurrent
+			}
 		}
 	}
+
 	sort.Sort(config.JDs(jds))
 
 	//output
@@ -92,7 +107,7 @@ func Main(cmd *cobra.Command, args []string) {
 
 	var reporter *exec.Reporter
 	mainOptions := []routine.Opt{routine.Interrupts(routine.DefaultCancelInterruptors...)}
-	if viper.GetBool("report") {
+	if needReport {
 		n := viper.GetInt("repeat-times") * viper.GetInt("concurrent")
 		reporter = exec.NewReporter(n)
 		prepare := routine.ExecutorFunc(func(ctx context.Context) error {
@@ -113,21 +128,21 @@ func Main(cmd *cobra.Command, args []string) {
 		log.SetLevel(logrus.TraceLevel)
 		ctx = routine.WithLogger(ctx, log)
 	}
+	if httpShared > 0 {
+		ctx = exec.WithTransport(ctx, httpclient.NewHTTPTransport(httpclient.MaxIdleConnections(httpShared)))
+	}
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	err := routine.Main(
 		ctx,
 		routine.ExecutorFunc(func(ctx context.Context) error {
 			jobs := make(map[string]chan error, len(jds))
-			var main chan error
 			var tail chan error
 			for _, jd := range jds {
 				if len(jd.Order.Precondition) == 0 {
 					job := exec.NewJob(jd, reporter)
 					ch := routine.Go(ctx, job)
 					jobs[job.String()] = ch
-					if jd.Report {
-						main = ch
-					}
 					tail = ch
 					if jd.Order.Wait {
 						<-ch
@@ -142,19 +157,13 @@ func Main(cmd *cobra.Command, args []string) {
 					job := exec.NewJob(jd, reporter)
 					ch := routine.Go(ctx, job)
 					jobs[job.String()] = ch
-					if jd.Report {
-						main = ch
-					}
 					tail = ch
 					if jd.Order.Wait {
 						<-ch
 					}
 				}
 			}
-			if main == nil {
-				main = tail
-			}
-			return <-main
+			return <-tail
 		}),
 		mainOptions...)
 	if err != nil {

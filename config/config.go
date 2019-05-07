@@ -95,7 +95,7 @@ func CommandJD() *JD {
 		},
 		Repeat:     Repeat{Times: 1},
 		Concurrent: 1,
-		Report:     true,
+		Report:     false,
 	}
 }
 
@@ -107,7 +107,7 @@ func HTTPCommandJD() *JD {
 		},
 		Repeat:     Repeat{Times: 1},
 		Concurrent: 1,
-		Report:     true,
+		Report:     false,
 	}
 }
 

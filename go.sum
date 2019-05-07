@@ -71,12 +71,16 @@ github.com/x-mod/httpclient v0.1.0 h1:Jo6e5mQxILt4kl5ILf1GUQ6K622gEdhfC1PujraiID
 github.com/x-mod/httpclient v0.1.0/go.mod h1:dNzNF0CmQerDG6LInJX3CgeO2cAsYgOnomUWorOzJsY=
 github.com/x-mod/httpclient v0.1.1 h1:mGwKb72Alc6FKGqvlDhrOJozcmbtrmSR0ePrrdVap2w=
 github.com/x-mod/httpclient v0.1.1/go.mod h1:2ZsKGweQf2SzJcO+ADqYa2KfoDfVB4pzZcrVcWofRfw=
+github.com/x-mod/httpclient v0.1.2 h1:OFd6v3yidoJLdOY5XXEaYGG/PUJquftzfzTQf5da368=
+github.com/x-mod/httpclient v0.1.2/go.mod h1:2ZsKGweQf2SzJcO+ADqYa2KfoDfVB4pzZcrVcWofRfw=
 github.com/x-mod/routine v1.0.4 h1:DAgRsm2DqZbCm9ji154Vwayn6apR1fcdDq5r2RVQaw0=
 github.com/x-mod/routine v1.0.4/go.mod h1:q3ZiZdpXpY/XgDiETdvSUspjpKfiXXCI9PTPy/gFehE=
 github.com/x-mod/routine v1.0.5 h1:+RrAZ8FQFL/qBF6UxpyVxqnAN6aOZzA0Tpcbg23oPEo=
 github.com/x-mod/routine v1.0.5/go.mod h1:q3ZiZdpXpY/XgDiETdvSUspjpKfiXXCI9PTPy/gFehE=
 github.com/x-mod/routine v1.0.6 h1:kPoWOy+9+A1UaAAzDzfZjBDmIamtIbqSFvqDexWBpFk=
 github.com/x-mod/routine v1.0.6/go.mod h1:q3ZiZdpXpY/XgDiETdvSUspjpKfiXXCI9PTPy/gFehE=
+github.com/x-mod/routine v1.0.7 h1:AyI49i2gg8eCftEyxLw3nXGwBVQ6MQoK1RCauG22XW4=
+github.com/x-mod/routine v1.0.7/go.mod h1:q3ZiZdpXpY/XgDiETdvSUspjpKfiXXCI9PTPy/gFehE=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
 golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/lint v0.0.0-20181026193005-c67002cb31c3/go.mod h1:UVdnD1Gm6xHRNCYTkRU2/jEulfH38KcIWyp/GAMgvoE=

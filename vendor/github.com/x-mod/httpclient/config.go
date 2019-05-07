@@ -36,6 +36,7 @@ type responseConfig struct {
 }
 
 type transportConfig struct {
-	retry   int
-	timeout time.Duration
+	maxIdleConnsPerHost int
+	retry               int
+	timeout             time.Duration
 }

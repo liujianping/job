@@ -11,6 +11,8 @@ import (
 	"github.com/x-mod/routine"
 )
 
+const defaultMaxIdleConnections = 32
+
 //HTTPCommand struct
 type HTTPCommand struct {
 	cmd *config.Command
@@ -68,7 +70,16 @@ func (h *HTTPCommand) Execute(ctx context.Context) error {
 		clientOpts = append(clientOpts, httpclient.Response(
 			httpclient.NewDiscardResponse(),
 		))
+	} else {
+		clientOpts = append(clientOpts, httpclient.Response(
+			httpclient.NewDumpResponse(),
+		))
 	}
+	clientOpts = append(clientOpts, httpclient.Transport(httpclient.NewHTTPTransport(
+		httpclient.Retry(h.cmd.Retry),
+		httpclient.Timeout(h.cmd.Timeout),
+		httpclient.MaxIdleConnections(defaultMaxIdleConnections),
+	)))
 	client := httpclient.New(clientOpts...)
 	return client.Execute(ctx)
 }

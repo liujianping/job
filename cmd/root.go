@@ -68,7 +68,8 @@ func init() {
 	rootCmd.Flags().StringP("schedule", "s", "", "job schedule in crontab format")
 	rootCmd.Flags().DurationP("timeout", "T", 0, "job timeout duration")
 	rootCmd.Flags().BoolP("guarantee", "G", false, "job guarantee mode enable ?")
-	rootCmd.Flags().BoolP("report", "R", false, "job reporter enable ?")
+	rootCmd.Flags().BoolP("report", "R", false, "job report enable ?")
+	rootCmd.Flags().StringP("report-push-gateway", "P", "", "job report to prometheus push gateway address")
 	rootCmd.Flags().BoolP("output", "o", false, "job yaml config output enable ?")
 	rootCmd.Flags().BoolP("verbose", "V", false, "job verbose log enable ?")
 

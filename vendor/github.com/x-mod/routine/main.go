@@ -15,6 +15,12 @@ func Main(parent context.Context, exec Executor, opts ...Opt) error {
 	for _, opt := range opts {
 		opt(moptions)
 	}
+	//prepare
+	if moptions.prepareExec != nil {
+		if err := moptions.prepareExec.Execute(parent); err != nil {
+			return errors.Annotate(err, "routine main prepare")
+		}
+	}
 	// context with cancel & wait
 	ctx, cancel := context.WithCancel(parent)
 	defer cancel()
@@ -22,6 +28,8 @@ func Main(parent context.Context, exec Executor, opts ...Opt) error {
 	if len(moptions.args) > 0 {
 		ctx = WithArgments(ctx, moptions.args...)
 	}
+	// waits
+	ctx = WithWait(ctx)
 	// signals
 	sigchan := make(chan os.Signal)
 	sighandlers := make(map[os.Signal]InterruptHandler)
@@ -32,6 +40,7 @@ func Main(parent context.Context, exec Executor, opts ...Opt) error {
 	// main executor
 	ch := Go(ctx, exec)
 	// main exit for sig & finished
+	exitCode := GeneralErr
 	exitCh := make(chan error, 1)
 	for {
 		select {
@@ -39,12 +48,12 @@ func Main(parent context.Context, exec Executor, opts ...Opt) error {
 			// cancel when a signal catched
 			if h, ok := sighandlers[sig]; ok {
 				if h(ctx) {
-					exitCh <- errors.CodeError(SignalCode(sig.(syscall.Signal)))
-					goto Exit
+					cancel()
+					exitCode = SignalCode(sig.(syscall.Signal))
 				}
 			}
 		case <-ctx.Done():
-			exitCh <- errors.WithCode(ctx.Err(), GeneralErr)
+			exitCh <- errors.WithCode(ctx.Err(), exitCode)
 			goto Exit
 		case err := <-ch:
 			exitCh <- err
@@ -52,16 +61,21 @@ func Main(parent context.Context, exec Executor, opts ...Opt) error {
 		}
 	}
 Exit:
-	//exit hook
-	if moptions.beforeExit != nil {
-		moptions.beforeExit.Execute(ctx)
+	//wait main context subroutines
+	Wait(ctx)
+	//cleanup
+	if moptions.cleanupExec != nil {
+		if err := moptions.cleanupExec.Execute(parent); err != nil {
+			return errors.Annotate(err, "routine main cleanup")
+		}
 	}
 	return <-exitCh
 }
 
 //Go wrapper for go keyword, use in MAIN function
 func Go(ctx context.Context, exec Executor) chan error {
-	ch := make(chan error, 1)
+	//chan capcity set 2 for noneblock
+	ch := make(chan error, 2)
 	if exec == nil {
 		ch <- ErrNoneExecutor
 		return ch
@@ -91,11 +105,10 @@ func Go(ctx context.Context, exec Executor) chan error {
 }
 
 type options struct {
-	args          []interface{}
-	interrupts    []Interruptor
-	beforeExecute Executor
-	afterExecute  Executor
-	beforeExit    Executor
+	args        []interface{}
+	interrupts  []Interruptor
+	prepareExec Executor
+	cleanupExec Executor
 }
 
 //Opt interface
@@ -108,16 +121,23 @@ func Arguments(args ...interface{}) Opt {
 	}
 }
 
-//Interrupt Opt for Main
+//Interrupts Opt for Main
 func Interrupts(ints ...Interruptor) Opt {
 	return func(opts *options) {
 		opts.interrupts = append(opts.interrupts, ints...)
 	}
 }
 
-//BeforeExit Opt for Main
-func BeforeExit(exec Executor) Opt {
+//Prepare Opt for Main
+func Prepare(exec Executor) Opt {
 	return func(opts *options) {
-		opts.beforeExit = exec
+		opts.prepareExec = exec
+	}
+}
+
+//Cleanup Opt for Main
+func Cleanup(exec Executor) Opt {
+	return func(opts *options) {
+		opts.cleanupExec = exec
 	}
 }

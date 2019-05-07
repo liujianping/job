@@ -334,5 +334,6 @@ func (re *ReportExecutor) Execute(ctx context.Context) error {
 		Duration:      time.Since(begin),
 		ContentLength: re.wrCnt.(*WriteCounter).Count(),
 	}
-	return err
+	//report always succeed
+	return nil
 }

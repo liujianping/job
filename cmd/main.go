@@ -95,12 +95,16 @@ func Main(cmd *cobra.Command, args []string) {
 	if viper.GetBool("report") {
 		n := viper.GetInt("repeat-times") * viper.GetInt("concurrent")
 		reporter = exec.NewReporter(n)
-		beforeExit := routine.ExecutorFunc(func(ctx context.Context) error {
+		prepare := routine.ExecutorFunc(func(ctx context.Context) error {
+			routine.Go(ctx, reporter)
+			return nil
+		})
+		cleanup := routine.ExecutorFunc(func(ctx context.Context) error {
 			reporter.Stop()
 			reporter.Finalize()
 			return nil
 		})
-		mainOptions = append(mainOptions, routine.BeforeExit(beforeExit))
+		mainOptions = append(mainOptions, routine.Prepare(prepare), routine.Cleanup(cleanup))
 	}
 
 	ctx := context.TODO()
@@ -113,9 +117,6 @@ func Main(cmd *cobra.Command, args []string) {
 	err := routine.Main(
 		ctx,
 		routine.ExecutorFunc(func(ctx context.Context) error {
-			if reporter != nil {
-				routine.Go(ctx, reporter)
-			}
 			jobs := make(map[string]chan error, len(jds))
 			var main chan error
 			var tail chan error

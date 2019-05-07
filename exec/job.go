@@ -38,6 +38,9 @@ func (j *Job) String() string {
 //Execute implement executor
 func (j *Job) Execute(ctx context.Context) error {
 	var exec routine.Executor
+	if j.jd.Report {
+		j.jd.Command.Stdout = false
+	}
 	if j.jd.Command.Shell != nil {
 		exec = NewShellCommand(&j.jd.Command)
 	}

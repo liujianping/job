@@ -3,6 +3,7 @@ module github.com/x-mod/httpclient
 go 1.12
 
 require (
+	github.com/facebookgo/httpcontrol v0.0.0-20150708234001-ccde4420e1fe
 	github.com/golang/protobuf v1.3.1
 	github.com/json-iterator/go v1.1.6
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

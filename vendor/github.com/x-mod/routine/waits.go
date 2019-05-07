@@ -7,7 +7,7 @@ import (
 
 type _wait struct{}
 
-// WithWait context with sync.WaitGroup
+// WithWait context with sync.WaitGroup, reset WaitGroup
 func WithWait(ctx context.Context) context.Context {
 	if ctx != nil {
 		return context.WithValue(ctx, _wait{}, &sync.WaitGroup{})

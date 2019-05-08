@@ -7,17 +7,16 @@ make your short-term command as a long-term job
 
 Brew install
 
-````
-$: brew tap liujianping/tap && brew install job
-
+````bash
+$ brew tap liujianping/tap && brew install job
 ````
 
 OR go source install
 
 ````
-$: git clone https://github.com/liujianping/job.git
-$: cd job 
-$: go build -mod vendor
+$ git clone https://github.com/liujianping/job.git
+$ cd job 
+$ go build -mod vendor
 ````
 
 OR without go module enable,
@@ -29,8 +28,7 @@ $: go get -u github.com/liujianping/job
 ## Usage
 
 ````shell
-
-$: job -h
+$ job -h
 Job, make your short-term command as a long-term job
 
 Usage:
@@ -70,10 +68,10 @@ Flags:
   -V, --verbose                    job verbose log enable ?
 ````
 
-#### ** Output Job ** 
+#### Output Job
 
-````
-$: job -n 10 -i 500ms -T 3s -o -- curl https://www.baidu.com
+````bash
+$ job -n 10 -i 500ms -T 3s -o -- curl https://www.baidu.com
 Job:
   name: ""
   command:
@@ -159,10 +157,10 @@ Job:
     wait: false
 ````
 
-#### ** Local Report ** 
+#### Local Report
 
-````
-$: job -n 10 -i 500ms -c 5 -R -- echo hello
+````bash
+$ job -n 10 -i 500ms -c 5 -R -- echo hello
 
 Uptime:	5.1037 secs
 

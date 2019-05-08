@@ -5,11 +5,21 @@ make your short-term command as a long-term job
 
 ## Install
 
+Brew install
+
+````
+$: brew tap liujianping/tap && brew install job
+
+````
+
+OR go source install
+
 ````
 $: git clone https://github.com/liujianping/job.git
 $: cd job 
 $: go build -mod vendor
 ````
+
 OR without go module enable,
 
 ````
@@ -21,6 +31,8 @@ $: go get -u github.com/liujianping/job
 ````shell
 
 $: job -h
+Job, make your short-term command as a long-term job
+
 Usage:
   job [flags] [command args ...]
 

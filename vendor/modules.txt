@@ -56,9 +56,9 @@ github.com/spf13/pflag
 github.com/spf13/viper
 # github.com/x-mod/errors v0.1.2
 github.com/x-mod/errors
-# github.com/x-mod/httpclient v0.1.1
+# github.com/x-mod/httpclient v0.1.2
 github.com/x-mod/httpclient
-# github.com/x-mod/routine v1.0.6
+# github.com/x-mod/routine v1.0.7
 github.com/x-mod/routine
 # golang.org/x/sys v0.0.0-20181205085412-a5c9d58dba9a
 golang.org/x/sys/unix

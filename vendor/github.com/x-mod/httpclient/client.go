@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/x-mod/errors"
 )
@@ -28,7 +29,31 @@ func Request(builder *RequestBuilder) Opt {
 //Transport opt
 func Transport(transport http.RoundTripper) Opt {
 	return func(cf *config) {
-		cf.transport = transport
+		if cf.client == nil {
+			cf.client = &http.Client{
+				Transport: &http.Transport{},
+			}
+		}
+		cf.client.Transport = transport
+	}
+}
+
+//Timeout opt
+func Timeout(duration time.Duration) Opt {
+	return func(cf *config) {
+		if cf.client == nil {
+			cf.client = &http.Client{
+				Transport: &http.Transport{},
+			}
+		}
+		cf.client.Timeout = duration
+	}
+}
+
+//Connection opt
+func Connection(client *http.Client) Opt {
+	return func(cf *config) {
+		cf.client = client
 	}
 }
 
@@ -49,15 +74,12 @@ func New(opts ...Opt) *Client {
 }
 
 func (c *Client) get() *http.Client {
-	if c.con == nil {
-		c.m.Do(func() {
-			c.con = &http.Client{}
-			if c.config != nil {
-				c.con.Transport = c.config.transport
-			}
-		})
+	if c.config.client != nil {
+		return c.config.client
 	}
-	return c.con
+	return &http.Client{
+		Transport: &http.Transport{},
+	}
 }
 
 //Do client

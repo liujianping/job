@@ -46,7 +46,9 @@ func NewDumpResponse() *DumpResponse {
 //Process of DumpResponse
 func (d *DumpResponse) Process(rsp *http.Response) error {
 	defer rsp.Body.Close()
-	io.Copy(os.Stdout, rsp.Body)
+	if _, err := io.Copy(os.Stdout, rsp.Body); err != nil {
+		return err
+	}
 	if rsp.StatusCode == http.StatusOK {
 		return nil
 	}
@@ -65,7 +67,9 @@ func NewDiscardResponse() *DiscardResponse {
 //Process of DiscardResponse
 func (d *DiscardResponse) Process(rsp *http.Response) error {
 	defer rsp.Body.Close()
-	io.Copy(ioutil.Discard, rsp.Body)
+	if _, err := io.Copy(ioutil.Discard, rsp.Body); err != nil {
+		return err
+	}
 	if rsp.StatusCode == http.StatusOK {
 		return nil
 	}

@@ -6,9 +6,9 @@ import (
 )
 
 type config struct {
-	request   *RequestBuilder
-	response  ResponseProcessor
-	transport http.RoundTripper
+	request  *RequestBuilder
+	client   *http.Client
+	response ResponseProcessor
 }
 
 type bodyConfig struct {

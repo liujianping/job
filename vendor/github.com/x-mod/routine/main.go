@@ -87,7 +87,6 @@ func Go(ctx context.Context, exec Executor) chan error {
 	WaitAdd(ctx, 1)
 	go func() {
 		defer WaitDone(ctx)
-
 		// channel for function (run) done
 		stop := make(chan struct{})
 		go func() {

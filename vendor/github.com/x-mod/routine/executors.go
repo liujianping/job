@@ -122,7 +122,7 @@ func (r *RepeatExecutor) Execute(ctx context.Context) error {
 	if r.repeatTimes > 0 {
 		for i := 0; i < r.repeatTimes; i++ {
 			if err := fn(i + 1); err != nil {
-				return err
+				Error(ctx, "repeat executor failed: ", i, err)
 			}
 		}
 		return nil
@@ -130,7 +130,7 @@ func (r *RepeatExecutor) Execute(ctx context.Context) error {
 
 	for i := 0; ; i++ {
 		if err := fn(i + 1); err != nil {
-			return err
+			Error(ctx, "repeat executor failed: ", i, err)
 		}
 	}
 }
@@ -326,7 +326,7 @@ func (re *ReportExecutor) Execute(ctx context.Context) error {
 	}()
 	begin := time.Now()
 	re.wrCnt = NewWriteCounter(ioutil.Discard)
-	err := <-Go(WithStdout(ctx, re.wrCnt), re.exec)
+	err := re.exec.Execute(WithStdout(ctx, re.wrCnt))
 	re.result <- &Result{
 		Err:           err,
 		Code:          errors.ValueFrom(err),

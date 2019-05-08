@@ -1,2 +1,4 @@
+.goreleaser.yml
 protobuf/*
 report/*
+dist/*

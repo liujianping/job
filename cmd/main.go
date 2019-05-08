@@ -13,6 +13,7 @@ import (
 
 	"github.com/liujianping/job/config"
 	"github.com/liujianping/job/exec"
+	"github.com/liujianping/job/build"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,10 +29,16 @@ func CheckErr(err error) {
 }
 
 func Main(cmd *cobra.Command, args []string) {
-	if len(viper.GetString("config")) == 0 && len(args) == 0 {
-		cmd.Usage()
+	if viper.GetBool("version") {
+		build.Print()
 		os.Exit(0)
 	}
+
+	if len(viper.GetString("config")) == 0 && len(args) == 0 {
+		cmd.Help()
+		os.Exit(0)
+	}
+
 	jds := []*config.JD{}
 	if len(viper.GetString("config")) > 0 {
 		cfs, err := config.ParseJDs(viper.GetString("config"))

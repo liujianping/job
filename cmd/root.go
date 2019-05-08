@@ -70,8 +70,10 @@ func init() {
 	rootCmd.Flags().BoolP("guarantee", "G", false, "job guarantee mode enable ?")
 	rootCmd.Flags().BoolP("report", "R", false, "job report enable ?")
 	rootCmd.Flags().StringP("report-push-gateway", "P", "", "job report to prometheus push gateway address")
+	rootCmd.Flags().DurationP("report-push-interval", "I", 0*time.Second, "job report to prometheus push gateway interval")
 	rootCmd.Flags().BoolP("output", "o", false, "job yaml config output enable ?")
 	rootCmd.Flags().BoolP("verbose", "V", false, "job verbose log enable ?")
+	rootCmd.Flags().BoolP("version", "v", false, "job version")
 
 	// TODO support Distributed-Job
 	// rootCmd.Flags().StringP("host", "H", "", "dispatch JOB to the Host")

@@ -3,6 +3,7 @@ job
 
 make your short-term command as a long-term job
 
+[![GoDoc](https://godoc.org/github.com/liujianping/job?status.svg)](https://godoc.org/github.com/liujianping/job) [![Go Report Card](https://goreportcard.com/badge/github.com/liujianping/job)](https://goreportcard.com/report/github.com/liujianping/job) [![Build Status](https://travis-ci.org/liujianping/job.svg?branch=master)](https://travis-ci.org/liujianping/job) [![Version](https://img.shields.io/github/tag/liujianping/job.svg)](https://github.com/liujianping/job/releases)
 ## Install
 
 Brew install

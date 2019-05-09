@@ -1,7 +1,9 @@
 language: go
 go:
   - 1.11.x
+env:
+  - GO111MODULE=on 
 script:
-  - GO111MODULE=on GOOS=windows go install -mod vendor github.com/liujianping/job
-  - GO111MODULE=on GOOS=linux go install -mod vendor github.com/liujianping/job
-  - GO111MODULE=on GOOS=darwin go install -mod vendor github.com/liujianping/job
+  - GOOS=windows go install -mod vendor github.com/liujianping/job
+  - GOOS=linux go install -mod vendor github.com/liujianping/job
+  - GOOS=darwin go install -mod vendor github.com/liujianping/job

@@ -18,6 +18,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/liujianping/job/build"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -41,6 +42,15 @@ var rootCmd = &cobra.Command{
 (job output)  $: job -n 10 -i 500ms -T 3s -o -- echo hello
 (job config)  $: job -f /path/to/job.yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if viper.GetBool("version") {
+			build.Print()
+			os.Exit(0)
+		}
+
+		if len(viper.GetString("config")) == 0 && len(args) == 0 {
+			cmd.Help()
+			os.Exit(0)
+		}
 		Main(cmd, args)
 	},
 }
@@ -57,7 +67,7 @@ func init() {
 	rootCmd.Flags().StringP("config", "f", "", "job config file path")
 	rootCmd.Flags().StringP("name", "N", "", "job name definition")
 	metadata = rootCmd.Flags().StringToStringP("metadata", "M", map[string]string{}, "job metadata definition")
-	envs = rootCmd.Flags().StringToStringP("cmd-env", "e", map[string]string{}, "job command enviromental variables")
+	envs = rootCmd.Flags().StringToStringP("cmd-env", "e", map[string]string{}, "job command environmental variables")
 	rootCmd.Flags().IntP("cmd-retry", "r", 0, "job command retry times when failed")
 	rootCmd.Flags().DurationP("cmd-timeout", "t", 0, "job command timeout duration")
 	rootCmd.Flags().BoolP("cmd-stdout-discard", "d", false, "job command stdout discard ?")

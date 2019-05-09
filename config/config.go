@@ -253,18 +253,3 @@ func Metadata(key string, val interface{}) Option {
 		}
 	}
 }
-
-//JDs type
-type JDs []*JD
-
-func (js JDs) Len() int {
-	return len(js)
-}
-
-func (js JDs) Less(i, j int) bool {
-	return js[i].Order.Weight < js[j].Order.Weight
-}
-
-func (js JDs) Swap(i, j int) {
-	js[i], js[j] = js[j], js[i]
-}

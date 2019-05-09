@@ -12,6 +12,7 @@ import (
 
 const maxNum = 1000000
 
+//ReportData struct
 type ReportData struct {
 	AvgTotal float64
 	Fastest  float64
@@ -40,11 +41,13 @@ type ReportData struct {
 	Histogram           []Bucket
 }
 
+//LatencyDistribution struct
 type LatencyDistribution struct {
 	Percentage int
 	Latency    float64
 }
 
+//Bucket struct
 type Bucket struct {
 	Mark      float64
 	Count     int
@@ -55,6 +58,7 @@ const (
 	barChar = "■"
 )
 
+//Reporter struct
 type Reporter struct {
 	upTime  time.Time
 	results chan *routine.Result
@@ -78,6 +82,7 @@ type Reporter struct {
 	numRes    int64
 }
 
+//NewReporter new
 func NewReporter(n int) *Reporter {
 	cap := min(n, maxNum)
 	return &Reporter{
@@ -89,10 +94,12 @@ func NewReporter(n int) *Reporter {
 	}
 }
 
+//Report chan
 func (r *Reporter) Report() chan *routine.Result {
 	return r.results
 }
 
+//Execute impl executor
 func (r *Reporter) Execute(ctx context.Context) error {
 	// Loop will continue until channel is closed
 	for res := range r.results {
@@ -123,10 +130,13 @@ func min(a, b int) int {
 	}
 	return b
 }
+
+//Stop reporter
 func (r *Reporter) Stop() {
 	close(r.results)
 }
 
+//Finalize end
 func (r *Reporter) Finalize() {
 	r.total = time.Since(r.upTime)
 	r.ops = float64(r.numRes) / r.total.Seconds()

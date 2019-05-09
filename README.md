@@ -8,27 +8,22 @@ make your short-term command as a long-term job
 Brew install
 
 ````bash
-$ brew tap liujianping/tap && brew install job
+$: brew tap liujianping/tap && brew install job
 ````
 
-OR go source install
+OR 
 
-````
-$ git clone https://github.com/liujianping/job.git
-$ cd job 
-$ go build -mod vendor
-````
-
-OR without go module enable,
-
-````
-$: go get -u github.com/liujianping/job
+````bash
+$: git clone https://github.com/liujianping/job.git
+$: cd job 
+$: go build -mod vendor
 ````
 
 ## Usage
 
-````shell
-$ job -h
+````bash
+
+$: job -h
 Job, make your short-term command as a long-term job
 
 Usage:
@@ -71,7 +66,7 @@ Flags:
 #### Output Job
 
 ````bash
-$ job -n 10 -i 500ms -T 3s -o -- curl https://www.baidu.com
+$: job -n 10 -i 500ms -T 3s -o -- curl https://www.baidu.com
 Job:
   name: ""
   command:
@@ -160,7 +155,7 @@ Job:
 #### Local Report
 
 ````bash
-$ job -n 10 -i 500ms -c 5 -R -- echo hello
+$: job -n 10 -i 500ms -c 5 -R -- echo hello
 
 Uptime:	5.1037 secs
 
@@ -201,3 +196,6 @@ Code distribution:
   [0]	50 responses
 ````
 
+## TODO
+
+- metrics report to prometheus push gateway support

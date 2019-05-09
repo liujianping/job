@@ -14,9 +14,19 @@
 
 package main
 
-import "github.com/liujianping/job/cmd"
+import (
+	"github.com/liujianping/job/build"
+	"github.com/liujianping/job/cmd"
+)
+
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
 
 //go:generate protoc pb/job.proto --go_out=${GOPATH}/src
 func main() {
+	build.Info(version, commit, date)
 	cmd.Execute()
 }

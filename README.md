@@ -63,7 +63,7 @@ Flags:
   -V, --verbose                    job verbose log enable ?
 ````
 
-#### ** Output Job ** 
+#### Output Job
 
 ````bash
 $: job -n 10 -i 500ms -T 3s -o -- curl https://www.baidu.com
@@ -152,7 +152,7 @@ Job:
     wait: false
 ````
 
-#### ** Local Report ** 
+#### Local Report
 
 ````bash
 $: job -n 10 -i 500ms -c 5 -R -- echo hello

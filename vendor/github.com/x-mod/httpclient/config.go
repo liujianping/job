@@ -1,14 +1,31 @@
 package httpclient
 
 import (
+	"crypto/tls"
 	"net/http"
 	"time"
 )
 
 type config struct {
-	request  *RequestBuilder
-	client   *http.Client
-	response ResponseProcessor
+	proxy               string
+	request             *RequestBuilder
+	response            ResponseProcessor
+	timeout             time.Duration
+	keepalive           time.Duration
+	tlsHandsHakeTimeout time.Duration
+	credential          *tls.Config
+	doRetries           int
+	executeRetries      int
+	maxConnsPerHost     int
+	maxIdleConnsPerHost int
+	dialer              DialContext
+	transport           http.RoundTripper
+	client              *http.Client
+}
+
+type authConfig struct {
+	username string
+	password string
 }
 
 type bodyConfig struct {
@@ -27,6 +44,8 @@ type requestConfig struct {
 	Headers  map[string]string
 	Queries  map[string]string
 	Fragment string
+	Cookies  []*http.Cookie
+	Auth     *authConfig
 	Content  *Body
 }
 

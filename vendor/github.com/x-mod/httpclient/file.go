@@ -1,11 +1,6 @@
 package httpclient
 
-import (
-	"io"
-	"io/ioutil"
-	"path/filepath"
-)
-
+/* TODO FILE CONTENT SUPPORT
 type File struct {
 	Filename  string
 	Fieldname string
@@ -51,3 +46,4 @@ func NewFileByReader(field string, filename string, rd io.Reader) (*File, error)
 		Data:      data,
 	}, nil
 }
+*/

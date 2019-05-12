@@ -132,7 +132,7 @@ Job:
     stdout: true
     http:    
       request: 
-        url: "https://www.baidu.com"
+        url: "https://github.com/liujianping/job"
         method: GET
         # headers: 
         #   Content-Type: application/json
@@ -201,13 +201,15 @@ Code distribution:
 
 ## TODO
 
-- support metrics report to prometheus push gateway 
-- template variables for commands
-- more embend commands support, like:
-  - grpc
-  - thrift
-  - database
-  - smtp
+- [ ] support metrics report to prometheus push gateway 
+- [ ] template variables for commands
+- [ ] more embedded commands support, like:
+  - [x] http
+  - [ ] grpc
+  - [ ] thrift
+  - [ ] database
+  - [ ] smtp
+- [ ] commands response assertions 
 
 ## Inspired By
 

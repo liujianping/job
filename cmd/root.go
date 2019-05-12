@@ -82,6 +82,7 @@ func init() {
 	rootCmd.Flags().StringP("report-push-gateway", "P", "", "job report to prometheus push gateway address")
 	rootCmd.Flags().DurationP("report-push-interval", "I", 0*time.Second, "job report to prometheus push gateway interval")
 	rootCmd.Flags().BoolP("output", "o", false, "job yaml config output enable ?")
+	// rootCmd.Flags().StringP("output-command-format", "F", "shell", "job yaml config output command format ?")
 	rootCmd.Flags().BoolP("verbose", "V", false, "job verbose log enable ?")
 	rootCmd.Flags().BoolP("version", "v", false, "job version")
 

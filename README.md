@@ -1,9 +1,9 @@
 job
 ===
+[![GoDoc](https://godoc.org/github.com/liujianping/job?status.svg)](https://godoc.org/github.com/liujianping/job) [![Go Report Card](https://goreportcard.com/badge/github.com/liujianping/job)](https://goreportcard.com/report/github.com/liujianping/job) [![Build Status](https://travis-ci.org/liujianping/job.svg?branch=master)](https://travis-ci.org/liujianping/job) [![Version](https://img.shields.io/github/tag/liujianping/job.svg)](https://github.com/liujianping/job/releases)
 
 make your short-term command as a long-term job
 
-[![GoDoc](https://godoc.org/github.com/liujianping/job?status.svg)](https://godoc.org/github.com/liujianping/job) [![Go Report Card](https://goreportcard.com/badge/github.com/liujianping/job)](https://goreportcard.com/report/github.com/liujianping/job) [![Build Status](https://travis-ci.org/liujianping/job.svg?branch=master)](https://travis-ci.org/liujianping/job) [![Version](https://img.shields.io/github/tag/liujianping/job.svg)](https://github.com/liujianping/job/releases)
 ## Install
 
 Brew install
@@ -44,24 +44,26 @@ Examples:
 (job config)  $: job -f /path/to/job.yaml
 
 Flags:
-  -e, --cmd-env stringToString     job command enviromental variables (default [])
-  -r, --cmd-retry int              job command retry times when failed
-  -d, --cmd-stdout-discard         job command stdout discard ?
-  -t, --cmd-timeout duration       job command timeout duration
-  -c, --concurrent int             job concurrent numbers
-  -f, --config string              job config file path
-  -G, --guarantee                  job guarantee mode enable ?
-  -h, --help                       help for job
-  -M, --metadata stringToString    job metadata definition (default [])
-  -N, --name string                job name definition
-  -o, --output                     job yaml config output enable ?
-  -i, --repeat-interval duration   job repeat interval duration
-  -w, --repeat-interval-nowait     job repeat interval nowait for current command done ?
-  -n, --repeat-times int           job repeat times, 0 means forever (default 1)
-  -R, --report                     job reporter enable ?
-  -s, --schedule string            job schedule in crontab format
-  -T, --timeout duration           job timeout duration
-  -V, --verbose                    job verbose log enable ?
+  -e, --cmd-env stringToString          job command enviromental variables (default [])
+  -r, --cmd-retry int                   job command retry times when failed
+  -d, --cmd-stdout-discard              job command stdout discard ?
+  -t, --cmd-timeout duration            job command timeout duration
+  -c, --concurrent int                  job concurrent numbers
+  -f, --config string                   job config file path
+  -G, --guarantee                       job guarantee mode enable ?
+  -h, --help                            help for job
+  -M, --metadata stringToString         job metadata definition (default [])
+  -N, --name string                     job name definition
+  -o, --output                          job yaml config output enable ?
+  -i, --repeat-interval duration        job repeat interval duration
+  -n, --repeat-times int                job repeat times, 0 means forever (default 1)
+  -R, --report                          job report enable ?
+  -P, --report-push-gateway string      job report to prometheus push gateway address
+  -I, --report-push-interval duration   job report to prometheus push gateway interval
+  -s, --schedule string                 job schedule in crontab format
+  -T, --timeout duration                job timeout duration
+  -V, --verbose                         job verbose log enable ?
+  -v, --version                         job version
 ````
 
 #### Output Job
@@ -199,4 +201,16 @@ Code distribution:
 
 ## TODO
 
-- metrics report to prometheus push gateway support
+- support metrics report to prometheus push gateway 
+- template variables for commands
+- more embend commands support, like:
+  - grpc
+  - thrift
+  - database
+  - smtp
+
+## Inspired By
+
+- [https://github.com/rakyll/hey](https://github.com/rakyll/hey)
+- [https://github.com/gavv/httpexpect](https://github.com/gavv/httpexpect)
+- [https://github.com/ovh/venom](https://github.com/ovh/venom)

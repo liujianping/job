@@ -85,20 +85,20 @@ func (h *HTTPCommand) Execute(ctx context.Context) error {
 	clientOpts = append(clientOpts, httpclient.Request(
 		httpclient.NewRequestBuilder(opts...),
 	))
-	if !h.cmd.Stdout {
-		clientOpts = append(clientOpts, httpclient.Response(
-			httpclient.NewDiscardResponse(),
-		))
-	} else {
+	if h.cmd.Stdout {
 		clientOpts = append(clientOpts, httpclient.Response(
 			httpclient.NewDumpResponse(),
 		))
 	}
+
 	if tr, ok := TransportFrom(ctx); ok {
 		clientOpts = append(clientOpts, httpclient.Transport(tr))
 	}
 	if h.cmd.Timeout > 0 {
 		clientOpts = append(clientOpts, httpclient.Timeout(h.cmd.Timeout))
+	}
+	if h.cmd.Retry > 1 {
+		clientOpts = append(clientOpts, httpclient.Retry(h.cmd.Retry))
 	}
 	client := httpclient.New(clientOpts...)
 	return client.Execute(ctx)

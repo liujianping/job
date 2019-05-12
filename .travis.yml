@@ -3,7 +3,10 @@ go:
   - 1.11.x
 env:
   - GO111MODULE=on 
+before_install:
+  - go get github.com/mattn/goveralls
 script:
+  - $GOPATH/bin/goveralls -service=travis-ci
   - GOOS=windows go install -mod vendor github.com/liujianping/job
   - GOOS=linux go install -mod vendor github.com/liujianping/job
   - GOOS=darwin go install -mod vendor github.com/liujianping/job

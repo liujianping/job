@@ -18,7 +18,7 @@ Job:
     times: 2
     interval: 100ms
   timeout: 1h
-  report: true
+  report: false
   order:
     precondition: [""]
     weight: 4
@@ -32,24 +32,23 @@ Job:
     stdout: true
     http:    
       request: 
-        url: "http://localhost:8090/v1/demo.Demo/Hello"
-        method: POST
-        headers: 
-          Content-Type: application/json
-          X-CHIRPEUR-IGNORE: f9mBRGjhuZX9
-        body:
-          json:
-            hello: "demo"
-            person:
-              name: jay
-              age: 39
+        url: "https://github.com"
+        method: GET
+        # headers: 
+        #   Content-Type: application/json
+        # body:
+        #   json:
+        #     hello: "demo"
+        #     person:
+        #       name: jay
+        #       age: 39
   crontab: ""
   concurrent: 2
   repeat:
     times: 3
     interval: "10ms"
   timeout: 1h
-  report: true
+  report: false
   order:
     weight: 3
     precondition:

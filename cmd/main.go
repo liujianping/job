@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/x-mod/httpclient"
-
 	"github.com/liujianping/job/config"
 	"github.com/liujianping/job/exec"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/x-mod/errors"
+	"github.com/x-mod/httpclient"
 	"github.com/x-mod/routine"
 	"gopkg.in/yaml.v2"
 )
@@ -21,23 +20,6 @@ var (
 	needReport      = false
 	httpConnections = 0
 )
-
-func prepareJDs(configPath string, command string) ([]*config.JD, error) {
-	jds := []*config.JD{}
-	if len(configPath) > 0 {
-		cfs, err := config.ParseJDs(configPath)
-		if err != nil {
-			return nil, err
-
-		}
-		jds = cfs
-	} else {
-		jd := config.CommandJD()
-		jd.Command.Shell.Name = command
-		jds = append(jds, jd)
-	}
-	return jds, nil
-}
 
 func optionJDs(jds []*config.JD, options []config.Option, report bool) {
 	for _, jd := range jds {
@@ -85,17 +67,19 @@ func withVerbose(ctx context.Context) context.Context {
 	return ctx
 }
 
-func withTransport(ctx context.Context) context.Context {
-	if httpConnections > 0 {
-		return exec.WithTransport(ctx, httpclient.NewHTTPTransport(httpclient.MaxIdleConnections(httpConnections)))
-	}
-	return ctx
-}
-
 //Main func
 func Main(cmd *cobra.Command, args []string) {
-	jds, err := prepareJDs(viper.GetString("config"), args[0])
-	exitForErr(err)
+	jds := []*config.JD{}
+	if len(viper.GetString("config")) > 0 {
+		cfs, err := config.ParseJDs(viper.GetString("config"))
+		exitForErr(err)
+		jds = append(jds, cfs...)
+	}
+	if len(args) > 0 {
+		jd := config.CommandJD()
+		jd.Command.Shell.Name = args[0]
+		jds = append(jds, jd)
+	}
 
 	options := []config.Option{}
 	options = append(options, config.Name(viper.GetString("name")))
@@ -142,10 +126,19 @@ func Main(cmd *cobra.Command, args []string) {
 		})
 		mainOptions = append(mainOptions, routine.Prepare(prepare), routine.Cleanup(cleanup))
 	}
+	//context
+	ctx := context.Background()
+	if httpConnections > 0 {
+		httpclient.DefaultMaxConnsPerHost = httpConnections
+		httpclient.DefaultMaxIdleConnsPerHost = httpConnections
+		exec.WithTransport(ctx, httpclient.New().GetTransport())
+	}
+
 	jobs := NewJOBs(jds, reporter)
 	jobs.Sort()
+
 	exitForErr(routine.Main(
-		withVerbose(withTransport(context.TODO())),
+		withVerbose(ctx),
 		jobs,
 		mainOptions...))
 }

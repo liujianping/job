@@ -18,6 +18,7 @@ func TestJOBs(t *testing.T) {
 	job2.Name = "two"
 	job2.Command.Shell.Name = "echo"
 	job2.Order.Weight = 2
+	job2.Order.Precondition = []string{"one"}
 
 	job3 := config.CommandJD()
 	job3.Name = "three"

@@ -14,18 +14,54 @@ func TestCommandJD(t *testing.T) {
 	assert.NotNil(t, jd2)
 
 	opts := []Option{}
-	opts = append(opts, Name("name"))
-	opts = append(opts, Metadata("key", "val"))
-	opts = append(opts, CommandName("echo"))
-	opts = append(opts, CommandArgs("aa", "bb", "cc"))
-	opts = append(opts, CommandEnv("key", "val"))
-	opts = append(opts, CommandRetry(3))
-	opts = append(opts, CommandStdoutDiscard(true))
-	opts = append(opts, CommandTimeout(time.Second))
-	opts = append(opts, RepeatTimes(10))
-	opts = append(opts, RepeatInterval(time.Second))
-	opts = append(opts, Concurrent(10))
-	opts = append(opts, Crontab("* * * * *"))
+	opt := Name("name")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = Metadata("key", "val")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = CommandName("echo")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = CommandArgs("aa", "bb", "cc")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = CommandEnv("key", "val")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = CommandRetry(3)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = CommandStdoutDiscard(true)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = CommandTimeout(time.Second)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = RepeatTimes(10)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = RepeatInterval(time.Second)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = Concurrent(10)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = Crontab("* * * * *")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
 	for _, opt := range opts {
 		opt(jd1)
 	}

@@ -13,6 +13,7 @@ require (
 	github.com/sirupsen/logrus v1.4.1
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.2
+	github.com/stretchr/testify v1.3.0
 	github.com/x-mod/errors v0.1.2
 	github.com/x-mod/httpclient v0.2.1
 	github.com/x-mod/routine v1.0.7

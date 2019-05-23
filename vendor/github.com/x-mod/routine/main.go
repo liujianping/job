@@ -15,6 +15,10 @@ func Main(parent context.Context, exec Executor, opts ...Opt) error {
 	for _, opt := range opts {
 		opt(moptions)
 	}
+	//init parent context
+	if parent == nil {
+		parent = context.TODO()
+	}
 	//prepare
 	if moptions.prepareExec != nil {
 		if err := moptions.prepareExec.Execute(parent); err != nil {
@@ -28,7 +32,7 @@ func Main(parent context.Context, exec Executor, opts ...Opt) error {
 	if len(moptions.args) > 0 {
 		ctx = WithArgments(ctx, moptions.args...)
 	}
-	// waits
+	// main ctx with wait
 	ctx = WithWait(ctx)
 	// signals
 	sigchan := make(chan os.Signal)
@@ -84,12 +88,13 @@ func Go(ctx context.Context, exec Executor) chan error {
 		ch <- ErrNoneContext
 		return ch
 	}
-	WaitAdd(ctx, 1)
+	WaitAdd(ctx, 2)
 	go func() {
 		defer WaitDone(ctx)
 		// channel for function (run) done
 		stop := make(chan struct{})
 		go func() {
+			defer WaitDone(ctx)
 			ch <- exec.Execute(ctx)
 			close(stop)
 		}()

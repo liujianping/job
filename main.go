@@ -15,8 +15,8 @@
 package main
 
 import (
-	"github.com/liujianping/job/build"
 	"github.com/liujianping/job/cmd"
+	ver "github.com/liujianping/job/version"
 )
 
 var (
@@ -27,6 +27,6 @@ var (
 
 //go:generate protoc pb/job.proto --go_out=${GOPATH}/src
 func main() {
-	build.Info(version, commit, date)
+	ver.Info(version, commit, date)
 	cmd.Execute()
 }

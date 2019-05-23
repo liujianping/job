@@ -19,7 +19,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/liujianping/job/build"
+	"github.com/liujianping/job/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -47,7 +47,7 @@ func RootCmd() *cobra.Command {
 	(job config)  $: job -f /path/to/job.yaml`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if viper.GetBool("version") {
-				fmt.Println(build.String())
+				fmt.Println(version.String())
 				os.Exit(0)
 			}
 

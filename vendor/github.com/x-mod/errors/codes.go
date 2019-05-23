@@ -20,3 +20,16 @@ func (code *errorCode) String() string {
 	}
 	return fmt.Sprintf("Error(%d)", code.value)
 }
+
+//Error implement error
+func (code *errorCode) Error() string {
+	return code.String()
+}
+
+//ValueErr pure value error
+func ValueErr(v int32) error {
+	if v != 0 {
+		return &errorCode{value: v}
+	}
+	return nil
+}

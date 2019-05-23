@@ -6,6 +6,7 @@ require (
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/rakyll/hey v0.1.1 // indirect
 	github.com/satori/go.uuid v1.2.0
+	github.com/stretchr/testify v1.3.0
 	github.com/x-mod/cronexpr v1.0.0
 	github.com/x-mod/errors v0.1.0
 )

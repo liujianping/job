@@ -2,37 +2,24 @@ package errors
 
 import "google.golang.org/grpc/status"
 
-//CodeFrom get code from the error
-//support code from grpc status
-func CodeFrom(err error) Code {
+//ValueFrom get code from the error
+//support code value from grpc status
+func ValueFrom(err error) int {
 	if err != nil {
 		for err != nil {
 			//from grpc status
 			if st, ok := status.FromError(err); ok {
-				return &errorCode{value: int32(st.Code()), message: st.Message()}
+				return int(st.Code())
 			}
 			//from error coder implement
 			if cd, ok := err.(coder); ok {
-				return &errorCode{value: int32(cd.Value()), message: err.Error()}
+				return int(cd.Value())
 			}
 			cause, ok := err.(causer)
 			if !ok {
 				break
 			}
 			err = cause.Cause()
-		}
-	}
-	return nil
-}
-
-//ValueFrom get code value from error
-//-1 means null code value
-//0 means OK
-func ValueFrom(err error) int {
-	if err != nil {
-		code := CodeFrom(err)
-		if code != nil {
-			return int(code.Value())
 		}
 		return -1
 	}

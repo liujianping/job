@@ -1,0 +1,21 @@
+Job:
+  name: "demo"
+  command:
+    shell: 
+      name: "echo"
+      args: 
+        - hello
+        - world
+      envs:
+        - name: "key"
+          value: "val"
+    retry: 3
+    timeout: 3s
+    guarantee: false
+  crontab: ""
+  wait: false
+--
+Job:
+  name: "get"
+  command:
+    retry: 3

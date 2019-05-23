@@ -31,7 +31,7 @@ var rootCmd *cobra.Command
 
 //RootCmd new root cmd
 func RootCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "job [flags] [command args ...]",
 		Short: "Job, make your short-term command as a long-term job",
 		Example: `
@@ -58,6 +58,28 @@ func RootCmd() *cobra.Command {
 			exitForErr(Main(cmd, args))
 		},
 	}
+	cmd.Flags().StringP("config", "f", "", "job config file path")
+	cmd.Flags().StringP("name", "N", "", "job name definition")
+	metadata = cmd.Flags().StringToStringP("metadata", "M", map[string]string{}, "job metadata definition")
+	envs = cmd.Flags().StringToStringP("cmd-env", "e", map[string]string{}, "job command environmental variables")
+	cmd.Flags().IntP("cmd-retry", "r", 0, "job command retry times when failed")
+	cmd.Flags().DurationP("cmd-timeout", "t", 0, "job command timeout duration")
+	cmd.Flags().BoolP("cmd-stdout-discard", "d", false, "job command stdout discard ?")
+
+	cmd.Flags().IntP("concurrent", "c", 0, "job concurrent numbers ")
+	cmd.Flags().IntP("repeat-times", "n", 1, "job repeat times, 0 means forever")
+	cmd.Flags().DurationP("repeat-interval", "i", 0*time.Second, "job repeat interval duration")
+	cmd.Flags().StringP("schedule", "s", "", "job schedule in crontab format")
+	cmd.Flags().DurationP("timeout", "T", 0, "job timeout duration")
+	cmd.Flags().BoolP("guarantee", "G", false, "job guarantee mode enable ?")
+	cmd.Flags().BoolP("report", "R", false, "job report enable ?")
+	cmd.Flags().StringP("report-push-gateway", "P", "", "job report to prometheus push gateway address")
+	cmd.Flags().DurationP("report-push-interval", "I", 0*time.Second, "job report to prometheus push gateway interval")
+	cmd.Flags().BoolP("output", "o", false, "job yaml config output enable ?")
+	// cmd.Flags().StringP("output-command-format", "F", "shell", "job yaml config output command format ?")
+	cmd.Flags().BoolP("verbose", "V", false, "job verbose log enable ?")
+	cmd.Flags().BoolP("version", "v", false, "job version")
+	return cmd
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -70,30 +92,6 @@ func Execute() {
 
 func init() {
 	rootCmd = RootCmd()
-	rootCmd.Flags().StringP("config", "f", "", "job config file path")
-	rootCmd.Flags().StringP("name", "N", "", "job name definition")
-	metadata = rootCmd.Flags().StringToStringP("metadata", "M", map[string]string{}, "job metadata definition")
-	envs = rootCmd.Flags().StringToStringP("cmd-env", "e", map[string]string{}, "job command environmental variables")
-	rootCmd.Flags().IntP("cmd-retry", "r", 0, "job command retry times when failed")
-	rootCmd.Flags().DurationP("cmd-timeout", "t", 0, "job command timeout duration")
-	rootCmd.Flags().BoolP("cmd-stdout-discard", "d", false, "job command stdout discard ?")
-
-	rootCmd.Flags().IntP("concurrent", "c", 0, "job concurrent numbers ")
-	rootCmd.Flags().IntP("repeat-times", "n", 1, "job repeat times, 0 means forever")
-	rootCmd.Flags().DurationP("repeat-interval", "i", 0*time.Second, "job repeat interval duration")
-	rootCmd.Flags().StringP("schedule", "s", "", "job schedule in crontab format")
-	rootCmd.Flags().DurationP("timeout", "T", 0, "job timeout duration")
-	rootCmd.Flags().BoolP("guarantee", "G", false, "job guarantee mode enable ?")
-	rootCmd.Flags().BoolP("report", "R", false, "job report enable ?")
-	rootCmd.Flags().StringP("report-push-gateway", "P", "", "job report to prometheus push gateway address")
-	rootCmd.Flags().DurationP("report-push-interval", "I", 0*time.Second, "job report to prometheus push gateway interval")
-	rootCmd.Flags().BoolP("output", "o", false, "job yaml config output enable ?")
-	// rootCmd.Flags().StringP("output-command-format", "F", "shell", "job yaml config output command format ?")
-	rootCmd.Flags().BoolP("verbose", "V", false, "job verbose log enable ?")
-	rootCmd.Flags().BoolP("version", "v", false, "job version")
-
-	// TODO support Distributed-Job
-	// rootCmd.Flags().StringP("host", "H", "", "dispatch JOB to the Host")
 	viper.BindPFlags(rootCmd.Flags())
 	rootCmd.HelpFunc()
 }

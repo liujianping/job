@@ -1,0 +1,149 @@
+Job:
+  name: "get"
+  command:
+    retry: 3
+    timeout: 3s
+    stdout: true
+    http:    
+      request: 
+        url: "http://localhost:8080/get"
+        method: GET
+  crontab: ""
+  concurrent: 1
+  repeat:
+    times: 1
+    interval: "0s"
+  timeout: 3s
+  report: false
+  order:
+    weight: 1
+    precondition:
+    wait: false
+---
+Job:
+  name: "json"
+  command:
+    retry: 3
+    timeout: 3s
+    stdout: true
+    http:    
+      request: 
+        url: "http://localhost:8080/json"
+        method: POST
+        headers: 
+          Content-Type: application/json
+        body:
+          json:
+            hello: "demo"
+            person:
+              name: jay
+              age: 39
+  crontab: ""
+  concurrent: 1
+  repeat:
+    times: 1
+    interval: "0s"
+  timeout: 3s
+  report: false
+  order:
+    weight: 2
+    precondition:
+    wait: false
+---
+Job:
+  name: "text"
+  command:
+    retry: 3
+    timeout: 3s
+    stdout: true
+    http:    
+      request: 
+        url: "http://localhost:8080/text"
+        method: GET
+        body:
+          text: "text"
+  crontab: ""
+  concurrent: 1
+  repeat:
+    times: 1
+    interval: "0s"
+  timeout: 3s
+  report: false
+  order:
+    weight: 3
+    precondition:
+    wait: false
+---
+Job:
+  name: "xml"
+  command:
+    retry: 3
+    timeout: 3s
+    stdout: true
+    http:    
+      request: 
+        url: "http://localhost:8080/xml"
+        method: POST
+        headers: 
+          Content-Type: application/xml
+        body:
+          json:
+            hello: "demo"
+            person:
+              name: jay
+              age: 39
+  crontab: ""
+  concurrent: 1
+  repeat:
+    times: 1
+    interval: "0s"
+  timeout: 3s
+  report: false
+  order:
+    weight: 4
+    precondition:
+    wait: false
+---
+Job:
+  name: "nofound"
+  command:
+    retry: 3
+    timeout: 3s
+    stdout: true
+    http:    
+      request: 
+        url: "http://localhost:8080/nofound"
+        method: GET
+  crontab: ""
+  concurrent: 1
+  repeat:
+    times: 1
+    interval: "0s"
+  timeout: 3s
+  report: false
+  order:
+    weight: 5
+    precondition:
+    wait: false
+---
+Job:
+  name: "timeout"
+  command:
+    retry: 3
+    timeout: 3s
+    stdout: true
+    http:    
+      request: 
+        url: "http://localhost:8080/timeout"
+        method: GET
+  crontab: ""
+  concurrent: 1
+  repeat:
+    times: 1
+    interval: "0s"
+  timeout: 1s
+  report: false
+  order:
+    weight: 6
+    precondition:
+    wait: false

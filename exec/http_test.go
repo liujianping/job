@@ -1,57 +1,65 @@
 package exec
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/liujianping/job/config"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHTTPCommand_Execute(t *testing.T) {
 	ts := httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.RequestURI {
-			case "/head":
-				if r.Header.Get("X-HEAD") != "x-head-value" {
-					http.Error(w, "head not equal", http.StatusBadRequest)
-					return
-				}
+			case "/get":
 				w.WriteHeader(http.StatusOK)
 				io.WriteString(w, `ok`)
 				return
-			case "/auth":
-				if user, pass, ok := r.BasicAuth(); ok {
-					if user == "jay" && pass == "123" {
-						w.WriteHeader(http.StatusOK)
-						io.WriteString(w, `ok`)
-						return
-					}
-				}
-				http.Error(w, "unauthorized", http.StatusUnauthorized)
-				return
-			case "/error":
-				http.Error(w, "error", http.StatusBadRequest)
-				return
-			case "/sleep":
-				time.Sleep(time.Second)
+			case "/post":
 				w.WriteHeader(http.StatusOK)
-				io.WriteString(w, `sleeped`)
+				io.WriteString(w, `ok`)
 				return
-			case "/ping":
+			case "/json":
+				w.WriteHeader(http.StatusOK)
+				io.WriteString(w, `ok`)
+				return
+			case "/text":
+				w.WriteHeader(http.StatusOK)
+				io.WriteString(w, `ok`)
+				return
+			case "/xml":
+				w.WriteHeader(http.StatusOK)
+				io.WriteString(w, `ok`)
+				return
+			case "/timeout":
+				time.Sleep(5 * time.Second)
 				w.WriteHeader(http.StatusOK)
 				io.WriteString(w, `ok`)
 				return
 			default:
 				http.NotFound(w, r)
 			}
-			if r.Header.Get("X-HEAD") != "x-head-value" {
-				http.Error(w, "head not equal", http.StatusBadRequest)
-				return
-			}
-			w.WriteHeader(http.StatusOK)
-			io.WriteString(w, `ok`)
 		}),
 	)
 	defer ts.Close()
+
+	jds, err := config.ParseJDs("../etc/http.yaml")
+	assert.Nil(t, err)
+
+	for _, jd := range jds {
+		jd.Command.HTTP.Request.URL = strings.Replace(jd.Command.HTTP.Request.URL, "http://localhost:8080", ts.URL, -1)
+		job := NewJob(jd, nil)
+
+		if job.String() == "timeout" {
+			assert.NotNil(t, job.Execute(context.TODO()), job.String())
+		} else {
+			assert.Nil(t, job.Execute(context.TODO()), job.String())
+		}
+	}
 }

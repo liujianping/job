@@ -3,6 +3,7 @@ package exec
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/liujianping/job/config"
 	"github.com/stretchr/testify/assert"
@@ -10,20 +11,45 @@ import (
 
 func TestJob_Execute(t *testing.T) {
 	cmd := config.CommandJD()
-	cmd.Command.Shell.Name = "echo"
-	cmd.Command.Shell.Args = []string{"hello", "world"}
+	opts := []config.Option{}
+	opt := config.Name("name")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = config.Metadata("key", "val")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = config.CommandName("echo")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = config.CommandArgs("aa", "bb", "cc")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = config.CommandEnv("key", "val")
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = config.CommandRetry(3)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = config.CommandStdoutDiscard(true)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = config.CommandTimeout(time.Second)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	for _, o := range opts {
+		o(cmd)
+	}
 
 	job := NewJob(cmd, nil)
 	assert.NotNil(t, job)
 	err := job.Execute(context.TODO())
 	assert.Nil(t, err)
-
-	http := config.HTTPCommandJD()
-	http.Command.HTTP.Request.URL = "https://github.com"
-	http.Command.HTTP.Request.Method = "GET"
-
-	job2 := NewJob(http, nil)
-	assert.NotNil(t, job2)
-	err2 := job2.Execute(context.TODO())
-	assert.Nil(t, err2)
 }

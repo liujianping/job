@@ -7,14 +7,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestOutput(t *testing.T) {
-	outCmd := RootCmd()
-	outCmd.Flags().Set("config", "../etc/job.yaml")
-	outCmd.Flags().Set("output", "true")
-	assert.Nil(t, Main(outCmd, []string{}))
+	cmd := RootCmd()
+	viper.BindPFlags(cmd.Flags())
+	cmd.Flags().Set("config", "../etc/job.yaml")
+	cmd.Flags().Set("output", "true")
+	assert.Nil(t, Main(cmd, []string{}))
 }
 
 func TestMain(t *testing.T) {
@@ -53,26 +55,30 @@ func TestMain(t *testing.T) {
 	)
 	defer ts.Close()
 
-	mainCmd := RootCmd()
-	mainCmd.Flags().Set("config", "../etc/job.yaml")
-	mainCmd.Flags().Set("report", "true")
-	assert.Nil(t, Main(mainCmd, []string{}))
+	cmd := RootCmd()
+	viper.BindPFlags(cmd.Flags())
+	cmd.Flags().Set("config", "../etc/job.yaml")
+	cmd.Flags().Set("report", "true")
+	assert.Nil(t, Main(cmd, []string{}))
 }
 
 func TestVersion(t *testing.T) {
-	verCmd := RootCmd()
-	verCmd.Flags().Set("version", "true")
-	assert.Nil(t, Main(verCmd, []string{}))
+	cmd := RootCmd()
+	viper.BindPFlags(cmd.Flags())
+	cmd.Flags().Set("version", "true")
+	assert.Nil(t, Main(cmd, []string{}))
 }
 
 func TestReport(t *testing.T) {
-	rptCmd := RootCmd()
-	rptCmd.Flags().Set("report", "true")
-	assert.Nil(t, Main(rptCmd, []string{"echo", "hello"}))
+	cmd := RootCmd()
+	viper.BindPFlags(cmd.Flags())
+	cmd.Flags().Set("report", "true")
+	assert.Nil(t, Main(cmd, []string{"echo", "hello"}))
 }
 
 func TestVerbose(t *testing.T) {
-	verbCmd := RootCmd()
-	verbCmd.Flags().Set("verbose", "true")
-	assert.Nil(t, Main(verbCmd, []string{"echox", "hello"}))
+	cmd := RootCmd()
+	viper.BindPFlags(cmd.Flags())
+	cmd.Flags().Set("verbose", "true")
+	assert.Nil(t, Main(cmd, []string{"echox", "hello"}))
 }

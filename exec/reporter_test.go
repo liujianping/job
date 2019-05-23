@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,5 +21,7 @@ func TestReporter_Execute(t *testing.T) {
 		}
 	}
 	report.Stop()
+
+	assert.Nil(t, report.Execute(context.TODO()))
 	report.Finalize()
 }

@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -26,33 +27,37 @@ import (
 var envs *map[string]string
 var metadata *map[string]string
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "job [flags] [command args ...]",
-	Short: "Job, make your short-term command as a long-term job",
-	Example: `
-(simple)      $: job echo hello	
-(schedule)    $: job -s "* * * * *" -- echo hello
-(retry)       $: job -r 3 -- echox hello
-(repeat)      $: job -n 10 -i 100ms -- echo hello
-(concurrent)  $: job -c 10 -n 10 -- echo hello
-(report)      $: job -R -- echo hello
-(timeout cmd) $: job -t 500ms -R -- sleep 1
-(timeout job) $: job -n 10 -i 500ms -T 3s -R -- echo hello
-(job output)  $: job -n 10 -i 500ms -T 3s -o -- echo hello
-(job config)  $: job -f /path/to/job.yaml`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if viper.GetBool("version") {
-			build.Print()
-			os.Exit(0)
-		}
+var rootCmd *cobra.Command
 
-		if len(viper.GetString("config")) == 0 && len(args) == 0 {
-			cmd.Help()
-			os.Exit(0)
-		}
-		Main(cmd, args)
-	},
+//RootCmd new root cmd
+func RootCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "job [flags] [command args ...]",
+		Short: "Job, make your short-term command as a long-term job",
+		Example: `
+	(simple)      $: job echo hello	
+	(schedule)    $: job -s "* * * * *" -- echo hello
+	(retry)       $: job -r 3 -- echox hello
+	(repeat)      $: job -n 10 -i 100ms -- echo hello
+	(concurrent)  $: job -c 10 -n 10 -- echo hello
+	(report)      $: job -R -- echo hello
+	(timeout cmd) $: job -t 500ms -R -- sleep 1
+	(timeout job) $: job -n 10 -i 500ms -T 3s -R -- echo hello
+	(job output)  $: job -n 10 -i 500ms -T 3s -o -- echo hello
+	(job config)  $: job -f /path/to/job.yaml`,
+		Run: func(cmd *cobra.Command, args []string) {
+			if viper.GetBool("version") {
+				fmt.Println(build.String())
+				os.Exit(0)
+			}
+
+			if len(viper.GetString("config")) == 0 && len(args) == 0 {
+				cmd.Help()
+				os.Exit(0)
+			}
+			exitForErr(Main(cmd, args))
+		},
+	}
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -64,6 +69,7 @@ func Execute() {
 }
 
 func init() {
+	rootCmd = RootCmd()
 	rootCmd.Flags().StringP("config", "f", "", "job config file path")
 	rootCmd.Flags().StringP("name", "N", "", "job name definition")
 	metadata = rootCmd.Flags().StringToStringP("metadata", "M", map[string]string{}, "job metadata definition")

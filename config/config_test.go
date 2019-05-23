@@ -7,11 +7,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCommandJD(t *testing.T) {
+func TestConfigJD(t *testing.T) {
 	jd1 := CommandJD()
 	assert.NotNil(t, jd1)
+	assert.Equal(t, "", jd1.String())
 	jd2 := HTTPCommandJD()
 	assert.NotNil(t, jd2)
+	assert.Equal(t, "http", jd2.String())
+	jd2.Command.HTTP.Request.URL = "http://aa.bb"
+	assert.Equal(t, "http://aa.bb", jd2.String())
 
 	opts := []Option{}
 	opt := Name("name")
@@ -62,6 +66,14 @@ func TestCommandJD(t *testing.T) {
 	assert.NotNil(t, opt)
 	opts = append(opts, opt)
 
+	opt = Guarantee(true)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
+	opt = Timeout(time.Second * 2)
+	assert.NotNil(t, opt)
+	opts = append(opts, opt)
+
 	for _, opt := range opts {
 		opt(jd1)
 	}
@@ -76,4 +88,8 @@ func TestCommandJD(t *testing.T) {
 	assert.Equal(t, 10, jd1.Repeat.Times)
 	assert.Equal(t, time.Second, jd1.Repeat.Interval)
 	assert.Equal(t, "* * * * *", jd1.Crontab)
+	assert.Equal(t, true, jd1.Guarantee)
+	assert.Equal(t, 2*time.Second, jd1.Timeout)
+	assert.NotEqual(t, "", jd1.String())
+
 }

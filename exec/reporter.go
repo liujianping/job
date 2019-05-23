@@ -104,6 +104,7 @@ func (r *Reporter) Execute(ctx context.Context) error {
 	// Loop will continue until channel is closed
 	for res := range r.results {
 		r.numRes++
+
 		if res.Err != nil {
 			r.errorDist[res.Err.Error()]++
 			r.codes = append(r.codes, res.Code)

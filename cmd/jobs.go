@@ -46,13 +46,12 @@ func (jobs JOBs) Sort() {
 //Execute impl executor
 func (jobs JOBs) Execute(ctx context.Context) error {
 	jmap := make(map[string]chan error, jobs.Len())
-	var tail chan error
 	for _, jd := range jobs.jds {
 		if len(jd.Order.Precondition) == 0 {
 			job := exec.NewJob(jd, jobs.report)
 			ch := routine.Go(ctx, job)
 			jmap[job.String()] = ch
-			tail = ch
+			// tail = ch
 			if jd.Order.Wait {
 				<-ch
 			}
@@ -66,11 +65,11 @@ func (jobs JOBs) Execute(ctx context.Context) error {
 			job := exec.NewJob(jd, jobs.report)
 			ch := routine.Go(ctx, job)
 			jmap[job.String()] = ch
-			tail = ch
+			// tail = ch
 			if jd.Order.Wait {
 				<-ch
 			}
 		}
 	}
-	return <-tail
+	return nil
 }

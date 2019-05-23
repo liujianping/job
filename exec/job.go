@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/liujianping/job/config"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/x-mod/routine"
 )
 
@@ -50,10 +50,8 @@ func (j *Job) Execute(ctx context.Context) error {
 	if j.jd.Guarantee {
 		exec = routine.Guarantee(exec)
 	}
-	if j.reporter != nil {
-		if j.jd.Report {
-			exec = routine.Report(j.reporter.Report(), exec)
-		}
+	if j.jd.Report && j.reporter != nil {
+		exec = routine.Report(j.reporter.Report(), exec)
 	}
 	if j.jd.Repeat.Times != 1 {
 		exec = routine.Repeat(j.jd.Repeat.Times, j.jd.Repeat.Interval, exec)

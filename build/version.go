@@ -8,9 +8,9 @@ var (
 	date    = "unknown"
 )
 
-//Print version
-func Print() {
-	fmt.Printf("%v, commit %v, built at %v\n", version, commit, date)
+//String version
+func String() string {
+	return fmt.Sprintf("%v, commit %v, built at %v", version, commit, date)
 }
 
 //Info build info

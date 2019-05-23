@@ -103,16 +103,3 @@ func (h *HTTPCommand) Execute(ctx context.Context) error {
 	client := httpclient.New(clientOpts...)
 	return client.Execute(ctx)
 }
-
-//StatusCode int
-type StatusCode int
-
-//Value StatusCode
-func (status StatusCode) Value() int32 {
-	return int32(status)
-}
-
-//String StatusCode
-func (status StatusCode) String() string {
-	return http.StatusText(int(status))
-}

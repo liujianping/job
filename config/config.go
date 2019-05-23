@@ -144,8 +144,10 @@ func Name(n string) Option {
 //CommandName opt
 func CommandName(cmd string) Option {
 	return func(jd *JD) {
-		if len(cmd) > 0 {
-			jd.Command.Shell.Name = cmd
+		if jd.Command.Shell != nil {
+			if len(cmd) > 0 {
+				jd.Command.Shell.Name = cmd
+			}
 		}
 	}
 }
@@ -153,8 +155,10 @@ func CommandName(cmd string) Option {
 //CommandArgs opt
 func CommandArgs(args ...string) Option {
 	return func(jd *JD) {
-		if len(args) > 0 {
-			jd.Command.Shell.Args = append(jd.Command.Shell.Args, args...)
+		if jd.Command.Shell != nil {
+			if len(args) > 0 {
+				jd.Command.Shell.Args = append(jd.Command.Shell.Args, args...)
+			}
 		}
 	}
 }
@@ -162,8 +166,10 @@ func CommandArgs(args ...string) Option {
 //CommandEnv opt
 func CommandEnv(key, val string) Option {
 	return func(jd *JD) {
-		if len(key) > 0 {
-			jd.Command.Shell.Envs = append(jd.Command.Shell.Envs, KV{Name: key, Value: val})
+		if jd.Command.Shell != nil {
+			if len(key) > 0 {
+				jd.Command.Shell.Envs = append(jd.Command.Shell.Envs, KV{Name: key, Value: val})
+			}
 		}
 	}
 }

@@ -16,6 +16,6 @@ require (
 	github.com/stretchr/testify v1.3.0
 	github.com/x-mod/errors v0.1.2
 	github.com/x-mod/httpclient v0.2.1
-	github.com/x-mod/routine v1.0.7
+	github.com/x-mod/routine v1.0.8
 	gopkg.in/yaml.v2 v2.2.2
 )

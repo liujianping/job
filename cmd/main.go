@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	needReport      = false
+	reportCap       = 0
 	httpConnections = 0
 )
 
@@ -25,15 +25,15 @@ func optionJDs(jds []*config.JD, options []config.Option, report bool) {
 	for _, jd := range jds {
 		for _, opt := range options {
 			opt(jd)
-			if report {
-				jd.Report = true
-			}
-			if jd.Report {
-				needReport = true
-			}
-			if jd.Command.HTTP != nil {
-				httpConnections = httpConnections + jd.Concurrent
-			}
+		}
+		if report {
+			jd.Report = report
+		}
+		if jd.Report {
+			reportCap = reportCap + jd.Concurrent*jd.Repeat.Times
+		}
+		if jd.Command.HTTP != nil {
+			httpConnections = httpConnections + jd.Concurrent
 		}
 	}
 }
@@ -68,11 +68,13 @@ func withVerbose(ctx context.Context) context.Context {
 }
 
 //Main func
-func Main(cmd *cobra.Command, args []string) {
+func Main(cmd *cobra.Command, args []string) error {
 	jds := []*config.JD{}
 	if len(viper.GetString("config")) > 0 {
 		cfs, err := config.ParseJDs(viper.GetString("config"))
-		exitForErr(err)
+		if err != nil {
+			return err
+		}
 		jds = append(jds, cfs...)
 	}
 	if len(args) > 0 {
@@ -106,15 +108,20 @@ func Main(cmd *cobra.Command, args []string) {
 	//output
 	if viper.GetBool("output") {
 		output(jds)
-		os.Exit(0)
+		return nil
 	}
+	//context
+	ctx := withVerbose(context.Background())
+
+	routine.Info(ctx, "http connections max: ", httpConnections)
+	routine.Info(ctx, "report capacity max: ", reportCap)
+
 	//reporter
 	var reporter *exec.Reporter
 	//main options
 	mainOptions := []routine.Opt{routine.Interrupts(routine.DefaultCancelInterruptors...)}
-	if needReport {
-		n := viper.GetInt("repeat-times") * viper.GetInt("concurrent")
-		reporter = exec.NewReporter(n)
+	if reportCap > 0 {
+		reporter = exec.NewReporter(reportCap)
 		prepare := routine.ExecutorFunc(func(ctx context.Context) error {
 			routine.Go(ctx, reporter)
 			return nil
@@ -126,8 +133,7 @@ func Main(cmd *cobra.Command, args []string) {
 		})
 		mainOptions = append(mainOptions, routine.Prepare(prepare), routine.Cleanup(cleanup))
 	}
-	//context
-	ctx := context.Background()
+
 	if httpConnections > 0 {
 		httpclient.DefaultMaxConnsPerHost = httpConnections
 		httpclient.DefaultMaxIdleConnsPerHost = httpConnections
@@ -137,8 +143,8 @@ func Main(cmd *cobra.Command, args []string) {
 	jobs := NewJOBs(jds, reporter)
 	jobs.Sort()
 
-	exitForErr(routine.Main(
-		withVerbose(ctx),
+	return routine.Main(
+		ctx,
 		jobs,
-		mainOptions...))
+		mainOptions...)
 }

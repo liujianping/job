@@ -1,32 +1,35 @@
-// Copyright © 2019 Jay Liu <liujianping.itech@qq.com>
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package main
 
 import (
-	"github.com/liujianping/job/cmd"
-	ver "github.com/liujianping/job/version"
+	"github.com/liujianping/job/job"
+	"github.com/x-mod/build"
+	"github.com/x-mod/cmd"
 )
 
-var (
-	version = "dev"
-	commit  = "none"
-	date    = "unknown"
-)
-
-//go:generate protoc pb/job.proto --go_out=${GOPATH}/src
 func main() {
-	ver.Info(version, commit, date)
+	c := cmd.Add(
+		cmd.Name("job"),
+		cmd.Main(job.Main),
+	)
+	c.Command.Use = "job [flags] [command args ...]"
+	c.Command.Short = "Job, make your short-term command as a long-term job"
+	c.Command.Example = `
+	(simple)      $: job echo hello	
+	(schedule)    $: job -s "* * * * *" -- echo hello
+	(retry)       $: job -r 3 -- echox hello
+	(repeat)      $: job -n 10 -i 100ms -- echo hello
+	(concurrent)  $: job -c 10 -n 10 -- echo hello
+	(timeout cmd) $: job -t 500ms -- sleep 1
+	(timeout job) $: job -T 3s -r 4 -- sleep 1`
+
+	c.Flags().DurationP("cmd-timeout", "t", 0, "job command timeout duration")
+	c.Flags().DurationP("job-timeout", "T", 0, "job timeout duration")
+	c.Flags().IntP("retry", "r", 0, "job command retry times when failed")
+	c.Flags().IntP("concurrent", "c", 0, "job concurrent numbers ")
+	c.Flags().IntP("repeat-times", "n", 1, "job repeat times, 0 means forever")
+	c.Flags().DurationP("repeat-interval", "i", 0, "job repeat interval duration")
+	c.Flags().StringP("schedule", "s", "", "job schedule in crontab format")
+
+	cmd.Version(build.String())
 	cmd.Execute()
 }

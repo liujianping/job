@@ -6,6 +6,16 @@ make your short-term command as a long-term job
 
 ## Install
 
+Shell Install (Linux & MacOS)
+
+````bash
+# binary will be $(go env GOPATH)/bin/job
+$: curl -sfL https://raw.githubusercontent.com/liujianping/job/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
+
+# In alpine linux (as it does not come with curl by default)
+$: wget -O - -q https://raw.githubusercontent.com/liujianping/job/master/install.sh | sh -s 
+````
+
 Brew install
 
 ````bash
